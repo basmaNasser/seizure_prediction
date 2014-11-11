@@ -25,7 +25,7 @@ def load_data(filename):
                 print 'Warning: unrecognized segment type ' + key
                 segtype = None
 
-    hour = int(filename.split('_')[-1].split('.')[0])/6
+    hour = (int(filename.split('_')[-1].split('.')[0])-1)/6
 
     data = {'data': segment[0],
             'length_sec': segment[1][0][0],
