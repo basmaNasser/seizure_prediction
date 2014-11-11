@@ -1,5 +1,6 @@
 # Functions to load EEG data from .mat files.
 
+import os
 import os.path
 import numpy as np
 from scipy.io import loadmat
@@ -40,4 +41,33 @@ def load_data(filename):
 
     return data
 
+
+def load_random_data(data_dir, seg_type, print_file_name=False):
+    """
+    Load a random segment of type seg_type ('preictal', 'interictal',
+    or 'test') from the directory data_dir.
+    """
+    data = None
     
+    data_files = os.listdir(data_dir)
+    if len(data_files) == 0:
+        print 'The directory ' + data_dir + ' is empty.'
+    else:
+        
+        # select data files with specified segment type
+        seg_files = []
+        for f in data_files:
+            if f.split('.')[-1] == 'mat':
+                if seg_type in f:
+                    seg_files.append(f)
+
+        if len(seg_files) == 0:
+            print 'No files found with segment type ' + seg_type
+        else:
+            chosen_file = os.path.join(data_dir, np.random.choice(seg_files))
+            data = load_data(chosen_file)
+            if print_file_name:
+                print '\nData loaded from ' + chosen_file
+
+    return data
+
