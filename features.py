@@ -6,6 +6,9 @@ import numpy as np
 def mean_of_means(data):
     return np.mean(data)
 
+def std_of_means(data):
+    return np.std(np.mean(data, axis=1))
+
 def mean_of_stds(data):
     return np.mean(np.std(data, axis=1))
 
@@ -13,7 +16,7 @@ def std_of_stds(data):
     return np.std(np.std(data, axis=1))
 
 def max_dev(data):
-    return np.max(np.abs(data.T - f_mean(data)))
+    return np.max(np.abs(data.T - np.mean(data, axis=1)))
 
 def compute_features(data, functions, labels):
     """
