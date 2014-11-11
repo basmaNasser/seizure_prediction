@@ -3,15 +3,13 @@
 # Display scatter plots of various features with different symbols
 # for preictal and interictal segments.
 
-import os
 import os.path
 import numpy as np
 import matplotlib.pyplot as plt
-import load_data
 import features
 
 data_dir = os.path.abspath('data/Dog_1')
-data_files = os.listdir(data_dir)
+feature_file = os.path.join(data_dir, 'features_01.txt')
 
 # set up plot
 fig = plt.figure(figsize=(8,8))
@@ -29,25 +27,28 @@ feature_labels = ['mean',
                   'std. dev. of std. devs.',
                   'max dev.']
 
-# compute and plot features for each segment
-for seg_type, color, marker in zip(['interictal', 'preictal'],
+# compute and save features, or laod previously computed features
+if os.path.isfile(feature_file):
+    X = np.loadtxt(feature_file)
+else:
+    X = features.compute_feature_matrix(data_dir,
+                                        feature_functions, feature_labels,
+                                        save_file=feature_file)
+
+
+# plot features for each segment
+for seg_type, color, marker in zip([0, 1],
                                    ['k', 'r'],
                                    ['.', 'x']):
-    X = np.zeros(len(feature_functions))
-    for f in data_files:
-        if f.split('.')[-1] == 'mat' and seg_type in f:
-            data = load_data.load_data(os.path.join(data_dir, f))
-            new_features, columns = features.compute_features(data['data'],
-                                                              feature_functions,
-                                                              feature_labels)
-            X = np.vstack((X, new_features))
-    X = X[1:,:]
+    # select rows matching a given segment type and remove (hour, type) cols.
+    seg_features = X[X[:,1] == seg_type, 2:]
 
     n_features = len(feature_functions)
     for i in range(1,n_features):
         for j in range(i):
             plt.subplot(n_features-1, n_features-1, (n_features-1)*(i-1)+j+1)
-            plt.scatter(X[:,j], X[:,i], c=color, marker=marker, s=20)
+            plt.scatter(seg_features[:,j], seg_features[:,i],
+                        c=color, marker=marker, s=20)
             if i == len(feature_functions)-1:
                 plt.xlabel(feature_labels[j])
             if j == 0:
