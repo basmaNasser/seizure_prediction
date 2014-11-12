@@ -40,9 +40,11 @@ def compute_feature_matrix(data_dir, functions, labels, save_file=None):
     Save the resulting feature matrix if the save_file keyword is set.
     """
     X = np.zeros(len(functions) + 2) # add 2 columns for hour and type
+    data_files = []
     
     for f in os.listdir(data_dir):
         if f.split('.')[-1] == 'mat':
+            data_files.append(f)
             data = load_data.load_data(os.path.join(data_dir, f))
             new_features = compute_features(data['data'], functions)
             if data['type'] == 'preictal':
@@ -64,8 +66,11 @@ def compute_feature_matrix(data_dir, functions, labels, save_file=None):
         np.savetxt(save_file, X, fmt='%.4e',
                    header='Data directory: ' + data_dir + \
                         '\nColumns:\n ' + '\n '.join(columns))
+        data_list_file = '.'.join(save_file.split('.')[:-1]) + '_data_files.txt'
+        with open(data_list_file, 'w') as df:
+            df.writelines('\n'.join(data_files))
         
-    return X
+    return (X, data_files)
 
 def scale_features(feature_matrix, exclude_columns=[0, 1]):
     """

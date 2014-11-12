@@ -31,9 +31,9 @@ feature_labels = ['mean',
 if os.path.isfile(feature_file):
     X = np.loadtxt(feature_file)
 else:
-    X = features.compute_feature_matrix(data_dir,
-                                        feature_functions, feature_labels,
-                                        save_file=feature_file)
+    X, data_files = features.compute_feature_matrix(data_dir,
+                                            feature_functions, feature_labels,
+                                            save_file=feature_file)
 
 X = features.scale_features(X)
 
