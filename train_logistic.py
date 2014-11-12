@@ -13,6 +13,7 @@ features_file = os.path.abspath('data/Dog_1/features_01.txt')
 type_column = 1    # column listing segment type
 feature_columns = [2, 3, 4, 5]    # columns to include in model
 n_cv = 10    # number of CV iterations
+n_pre_hrs = 1    # number of 6-segment preictal clips to use in CV samples
 C_reg = 1.0    # inverse of regularization strength
 
 features = np.loadtxt(features_file)
@@ -29,7 +30,7 @@ plt.plot(np.linspace(0, 1), np.linspace(0, 1), 'k:')
 # loop over random training-CV sample splittings
 for i_cv in range(n_cv):
     print '\nCV iteration', i_cv+1
-    indices = cv.cv_split_by_hour(features)
+    indices = cv.cv_split_by_hour(features, n_pre_hrs=n_pre_hrs)
 
     # get feature matrices and class arrays for training and CV samples
     train_features_all, cv_features_all = [features[indices[x],:] \

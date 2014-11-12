@@ -1,15 +1,16 @@
 # Cross-validation functions.
 
+import sys
 import numpy as np
 
-def cv_split_by_hour(X, hour_column=0, type_column=1):
+def cv_split_by_hour(X, hour_column=0, type_column=1, n_pre_hrs=1):
     """
     Given a feature matrix X with hour indices in column hour_column
     and class (segment type) labels in column class_column, form a 
-    cross-validation subsample by randomly selecting one set
-    of preictal (seg_type=1) segments belonging to the same hour and
-    1/N_hr_pre of the interictal (seg_type=0) segments (keeping segments
-    in the same hour together), where N_hr_pre is the number of preictal
+    cross-validation subsample by randomly selecting n_pre_hrs
+    hour-long clips of preictal (seg_type=1) segments and
+    n_pre_hrs/N of the interictal (seg_type=0) segments (keeping segments
+    in the same hour together), where N is the total number of preictal
     hours (1/6 the number of preictal segments).
     Return the indices of the CV subsample and the remaining
     indices, which form the training subsample.
@@ -21,8 +22,14 @@ def cv_split_by_hour(X, hour_column=0, type_column=1):
     inter_hrs = np.unique(X[seg_type == 0, hour_column])
 
     # choose random hour indices for CV sample
-    cv_pre_hrs = np.array([np.random.choice(pre_hrs)])
-    cv_inter_hrs = np.random.choice(inter_hrs, len(inter_hrs) / len(pre_hrs),
+    if n_pre_hrs >= len(pre_hrs):
+        sys.exit('Too many preictal hours for CV sample.')
+    elif n_pre_hrs == 1:
+        cv_pre_hrs = np.array([np.random.choice(pre_hrs)])
+    else:
+        cv_pre_hrs = np.random.choice(pre_hrs, n_pre_hrs)
+    cv_inter_hrs = np.random.choice(inter_hrs,
+                                    len(inter_hrs)*int(n_pre_hrs)/len(pre_hrs),
                                     replace=False)
 
     # find row indices for CV sample
