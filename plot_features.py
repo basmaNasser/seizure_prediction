@@ -35,6 +35,7 @@ else:
                                         feature_functions, feature_labels,
                                         save_file=feature_file)
 
+X = features.scale_features(X)
 
 # plot features for each segment
 for seg_type, color, marker in zip([0, 1],

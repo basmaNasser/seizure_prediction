@@ -67,3 +67,16 @@ def compute_feature_matrix(data_dir, functions, labels, save_file=None):
         
     return X
 
+def scale_features(feature_matrix, exclude_columns=[0, 1]):
+    """
+    Given a feature matrix with each row containing a feature vector
+    for a particular instance, rescale each feature to have mean zero
+    and unit variance. Specify columns to exclude from rescaling with
+    exclude_columns (1st 2 columns are excluded by default since they
+    are assumed to list the hour index and segment type).
+    """
+    X = np.copy(feature_matrix)
+    for i in range(X.shape[1]):
+        if i not in exclude_columns:
+            X[:,i] = (X[:,i] - np.mean(X[:,i])) / np.std(X[:,i])
+    return X
