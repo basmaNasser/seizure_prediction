@@ -5,50 +5,50 @@ import numpy as np
 import load_data
 
 def mean_of_means(data):
-    return np.mean(data)
+    return np.mean(data['data'])
 
 def std_of_means(data):
-    return np.std(np.mean(data, axis=1))
+    return np.std(np.mean(data['data'], axis=1))
 
 def mean_of_stds(data):
-    return np.mean(np.std(data, axis=1))
+    return np.mean(np.std(data['data'], axis=1))
 
 def std_of_stds(data):
-    return np.std(np.std(data, axis=1))
+    return np.std(np.std(data['data'], axis=1))
 
 def max_dev(data):
-    return np.max(np.abs(data.T - np.mean(data, axis=1)))
+    return np.max(np.abs(data['data'].T - np.mean(data['data'], axis=1)))
 
-def binned_power_spectrum(data, freq_bin_edges, sampling_rate):
-    freq = np.fft.rfftfreq(data.size, d=1./sampling_rate)
-    power = np.abs(np.fft.rfft(data))**2
+def binned_power_spectrum(time_series, freq_bin_edges, sampling_rate):
+    freq = np.fft.rfftfreq(time_series.size, d=1./sampling_rate)
+    power = np.abs(np.fft.rfft(time_series))**2
     return np.histogram(freq, freq_bin_edges, weights=power)[0] / \
            np.histogram(freq, freq_bin_edges)[0]
                        
-def power_mean(data, sampling_rate_hz):
+def power_mean(data):
     # define frequency bins (units = Hz)
     freq_bin_edges = np.logspace(-2, 2, num=6)
 
     # compute binned power spectrum for each electrode
     power = np.zeros(len(freq_bin_edges)-1)
-    for i in range(data.shape[0]):
-        power_i = binned_power_spectrum(data[i,:], freq_bin_edges,
-                                        sampling_rate_hz)
+    for i in range(data['data'].shape[0]):
+        power_i = binned_power_spectrum(data['data'][i,:], freq_bin_edges,
+                                        data['sampling_rate_hz'])
         power = np.vstack((power, power_i))
     power = power[1:,:]
 
     # compute the mean in each frequency bin
     return np.mean(power, axis=0)
 
-def power_cov(data, sampling_rate_hz):
+def power_cov(data):
     # define frequency bins (units = Hz)
     freq_bin_edges = np.logspace(-2, 2, num=6)
 
     # compute binned power spectrum for each electrode
     power = np.zeros(len(freq_bin_edges)-1)
-    for i in range(data.shape[0]):
-        power_i = binned_power_spectrum(data[i,:], freq_bin_edges,
-                                        sampling_rate_hz)
+    for i in range(data['data'].shape[0]):
+        power_i = binned_power_spectrum(data['data'][i,:], freq_bin_edges,
+                                        data['sampling_rate_hz'])
         power = np.vstack((power, power_i))
     power = power[1:,:]
 
@@ -58,35 +58,31 @@ def power_cov(data, sampling_rate_hz):
     return cov[np.triu_indices(len(cov))]
 
 
-def compute_features(data, functions, function_args):
+def compute_features(data, functions):
     """
-    Given a matrix with EEG voltage time series in rows
+    Given a data dictionary where data['data'] is a matrix with
+    EEG voltage time series in rows
     (one row for each electrode recorded in a particular segment),
-    and a dictionary of functions to apply to each time series, return
+    and a list of functions to apply to each time series, return
     an array with the resulting features and a list of column labels.
     """
     features = []
-    for f, args in zip(functions, function_args):
-        if args is None:
-            new_features = f(data)
-        else:
-            new_features = f(data, *args)
+    for f in functions:
+        new_features = f(data)
         try:
             features.extend(new_features)
         except:
             features.append(new_features)
     return features
 
-def compute_feature_matrix(data_dir, functions, function_args, labels,
-                           save_file=None):
+def compute_feature_matrix(data_dir, functions, labels,
+                           save_file=None, verbose=False):
     """
     For each .mat EEG data file in data_dir, compute the features given
     by functions and labels and return a 2D array where each row contains
     the index of the hour the segment belongs to, the segment type
     ('preictal': 1, 'interictal': 0, 'test': -1), and its features.
     Save the resulting feature matrix if the save_file keyword is set.
-    Additional arguments required to evaluate function should be passed
-    in function_args (use None for functions that need no extra arguments).
     """
     X = np.zeros(len(labels) + 2) # add 2 columns for hour and type
     data_files = []
@@ -94,9 +90,10 @@ def compute_feature_matrix(data_dir, functions, function_args, labels,
     for f in os.listdir(data_dir):
         if f.split('.')[-1] == 'mat':
             data_files.append(f)
+            if verbose:
+                print f
             data = load_data.load_data(os.path.join(data_dir, f))
-            new_features = compute_features(data['data'], functions,
-                                            function_args)
+            new_features = compute_features(data, functions)
             if data['type'] == 'preictal':
                 seg_type = 1
             elif data['type'] == 'interictal':
