@@ -40,6 +40,10 @@ for i_cv in range(n_cv):
     train_class, cv_class = [features[indices[x], type_column] \
                              for x in ['train', 'cv']]
 
+    pct_train = 100.*len(train_class)/float(len(train_class)+len(cv_class))
+    print len(train_class), 'training instances ({0:.1f}%)'.format(pct_train)
+    print len(cv_class), 'CV instances ({0:.1f}%)'.format(100.-pct_train)
+                             
     # train the model
     model.fit(train_features, train_class)
     print 'Feature coefficients:', model.coef_
