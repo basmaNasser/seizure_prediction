@@ -30,6 +30,10 @@ inter_elec = np.random.choice(inter_shape[0])
 fig = plt.figure(figsize=(8,8))
 fig.set_tight_layout(True)
 
+# frequency bins for averaged power spectrum
+freq_bin_edges = np.logspace(-2, 2, num=6)
+freq_bins = np.sqrt(freq_bin_edges[:-1]*freq_bin_edges[1:])
+
 plt.subplot(221)
 voltage = pre_data['data'][pre_elec,:]
 if filter_width > 0:
@@ -44,7 +48,12 @@ plt.ylabel('preictal voltage')
 plt.subplot(222)
 freq = np.fft.rfftfreq(voltage.size, d=1./pre_data['sampling_rate_hz'])
 power = np.abs(np.fft.rfft(voltage))**2
+binned_power = np.histogram(freq, freq_bin_edges, weights=power)[0] / \
+               np.histogram(freq, freq_bin_edges)[0]
+print freq_bins
+print binned_power
 plt.loglog(freq, power, 'k-')
+plt.loglog(freq_bins, binned_power, 'r-o')
 plt.xlabel('frequency [Hz]')
 plt.ylabel('preictal power')
 
@@ -62,7 +71,12 @@ plt.ylabel('interictal voltage')
 plt.subplot(224)
 freq = np.fft.rfftfreq(voltage.size, d=1./inter_data['sampling_rate_hz'])
 power = np.abs(np.fft.rfft(voltage))**2
+binned_power = np.histogram(freq, freq_bin_edges, weights=power)[0] / \
+               np.histogram(freq, freq_bin_edges)[0]
+print freq_bins
+print binned_power
 plt.loglog(freq, power, 'k-')
+plt.loglog(freq_bins, binned_power, 'r-o')
 plt.xlabel('frequency [Hz]')
 plt.ylabel('interictal power')
 
