@@ -13,7 +13,7 @@ import submission
 
 features_file = os.path.abspath('data/Dog_1/features_01.txt')
 data_list_file = os.path.abspath('data/Dog_1/features_01_data_files.txt')
-submission_file = os.path.abspath('submission_Dog_1_01.csv')
+submission_file = os.path.abspath('submission_Dog_1_02.csv')
 type_column = 1    # column listing segment type
 n_cv = 10    # number of CV iterations
 n_pre_hrs = 1    # number of 6-segment preictal clips to use in CV samples
@@ -116,7 +116,7 @@ for f in data_files:
 
 # update submission file
 submission.update_submission(dict(zip(test_files, p_pre_test)),
-                             submission_file)
+                             submission_file, default_value=0.5)
 
 # show plot
 ax0.set_xlabel('number of training instances')
