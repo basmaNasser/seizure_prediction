@@ -1,0 +1,4 @@
+*.mat
+*.tar
+*.pyc
+.DS_Store
