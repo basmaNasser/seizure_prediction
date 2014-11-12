@@ -9,14 +9,18 @@ from sklearn import linear_model
 from sklearn.metrics import roc_curve, roc_auc_score
 import cv
 import features
+import submission
 
 features_file = os.path.abspath('data/Dog_1/features_01.txt')
+data_list_file = os.path.abspath('data/Dog_1/features_01_data_files.txt')
+submission_file = os.path.abspath('submission_Dog_1_01.csv')
 type_column = 1    # column listing segment type
-feature_columns = [4, 5]    # columns to include in model
 n_cv = 10    # number of CV iterations
 n_pre_hrs = 1    # number of 6-segment preictal clips to use in CV samples
 n_learning_curve = 20    # number of steps for learning curves
-C_reg = 0.001    # inverse of regularization strength
+
+feature_columns = [5]    # columns to include in model
+C_reg = 0.1    # inverse of regularization strength
 
 X = np.loadtxt(features_file)
 X = features.scale_features(X)
@@ -91,6 +95,30 @@ for i_cv in range(n_cv):
 print '\n Average AUC:'
 print np.mean(auc_values), '+/-', np.std(auc_values)
 
+# re-train on entire training sample
+train_features_all = X[(X[:,type_column] == 0) | (X[:,type_column] == 1),:]
+train_features = train_features_all[:,np.array(feature_columns)]
+train_class = train_features_all[:,type_column]
+model.fit(train_features, train_class)
+
+# predict probabilities for test data
+test_features_all = X[X[:,type_column] == -1,:]
+test_features = test_features_all[:,np.array(feature_columns)]
+p_pre_test = model.predict_proba(test_features)[:,1]
+
+# get test file names
+with open(data_list_file, 'r') as df:
+    data_files = df.readlines()
+test_files = []
+for f in data_files:
+    if 'test' in f:
+        test_files.append(f.strip())
+
+# update submission file
+submission.update_submission(dict(zip(test_files, p_pre_test)),
+                             submission_file)
+
+# show plot
 ax0.set_xlabel('number of training instances')
 ax0.set_ylabel('AUC') 
 ax1.set_xlabel('false positive rate')
