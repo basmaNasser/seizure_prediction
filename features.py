@@ -28,7 +28,11 @@ def compute_features(data, functions):
     """
     features = []
     for f in functions:
-        features.append(f(data))
+        new_features = f(data)
+        try:
+            features.extend(new_features)
+        except:
+            features.append(new_features)
     return features
 
 def compute_feature_matrix(data_dir, functions, labels, save_file=None):
@@ -39,7 +43,7 @@ def compute_feature_matrix(data_dir, functions, labels, save_file=None):
     ('preictal': 1, 'interictal': 0, 'test': -1), and its features.
     Save the resulting feature matrix if the save_file keyword is set.
     """
-    X = np.zeros(len(functions) + 2) # add 2 columns for hour and type
+    X = np.zeros(len(labels) + 2) # add 2 columns for hour and type
     data_files = []
     
     for f in os.listdir(data_dir):
