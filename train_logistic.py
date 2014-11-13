@@ -11,16 +11,17 @@ import cv
 import features
 import submission
 
-features_file = os.path.abspath('data/Dog_1/features_01.txt')
-data_list_file = os.path.abspath('data/Dog_1/features_01_data_files.txt')
-submission_file = os.path.abspath('submission_Dog_1_02.csv')
+features_file = os.path.abspath('data/Dog_1/features_02.txt')
+data_list_file = os.path.abspath('data/Dog_1/features_02_data_files.txt')
+submission_file = os.path.abspath('submission_Dog_1_04.csv')
+default_prob = 0.83    # default probability for submission
 type_column = 1    # column listing segment type
-n_cv = 10    # number of CV iterations
-n_pre_hrs = 1    # number of 6-segment preictal clips to use in CV samples
-n_learning_curve = 20    # number of steps for learning curves
+n_cv = 100    # number of CV iterations
+n_pre_hrs = 2    # number of 6-segment preictal clips to use in CV samples
+n_learning_curve = 10    # number of steps for learning curves
 
-feature_columns = [5]    # columns to include in model
-C_reg = 0.1    # inverse of regularization strength
+feature_columns = [5, 8, 13, 14, 17]    # columns to include in model
+C_reg = 10.    # inverse of regularization strength
 
 X = np.loadtxt(features_file)
 X = features.scale_features(X)
@@ -35,6 +36,13 @@ fig.set_tight_layout(True)
 ax0 = plt.subplot(121)
 ax1 = plt.subplot(122)
 ax1.plot(np.linspace(0, 1), np.linspace(0, 1), 'k:')
+
+n_learn_avg = np.zeros(n_learning_curve)
+cv_learn_avg = np.zeros(n_learning_curve)
+train_learn_avg = np.zeros(n_learning_curve)
+
+fp_rate_avg = np.linspace(0, 1, num=100)
+tp_rate_avg = np.zeros(len(fp_rate_avg))
 
 # loop over random training-CV sample splittings
 for i_cv in range(n_cv):
@@ -64,16 +72,20 @@ for i_cv in range(n_cv):
         n_train = int(len(train_class) * (i_f+1) / float(n_learning_curve))
         ix_train = ix_train_all[:n_train]
         if 1 in train_class[ix_train]: # require at least 1 preictal case
+            n_learn_avg[i_f] += 1
             n_train_array.append(n_train)
             model.fit(train_features[ix_train], train_class[ix_train])
             cv_learn.append(roc_auc_score(cv_class,
                                           model.predict_proba( \
                                               cv_features)[:,1]))
+            cv_learn_avg[i_f] += cv_learn[-1]
             train_learn.append(roc_auc_score(train_class[ix_train],
                                              model.predict_proba( \
                                                 train_features[ix_train])[:,1]))
-    ax0.plot(n_train_array, train_learn, 'r-')
-    ax0.plot(n_train_array, cv_learn, 'k-')
+            train_learn_avg[i_f] += train_learn[-1]
+            
+    ax0.plot(n_train_array, train_learn, linestyle='-', color=(1,0.6,0.6))
+    ax0.plot(n_train_array, cv_learn, linestyle='-', color=(0.7,0.7,0.7))
     
     # train the model
     model.fit(train_features, train_class)
@@ -82,7 +94,8 @@ for i_cv in range(n_cv):
     # get classification probabilities, plot ROC curve, and compute AUC
     p_pre = model.predict_proba(cv_features)[:,1]
     fp_rate, tp_rate, thresholds = roc_curve(cv_class, p_pre)
-    ax1.plot(fp_rate, tp_rate, 'k-')
+    tp_rate_avg += np.interp(fp_rate_avg, fp_rate, tp_rate)
+    ax1.plot(fp_rate, tp_rate, linestyle='-', color=(0.7,0.7,0.7))
     auc = roc_auc_score(cv_class, p_pre)
     print 'AUC =', auc
     auc_values.append(auc)
@@ -91,7 +104,16 @@ for i_cv in range(n_cv):
     p_pre_train = model.predict_proba(train_features)[:,1]
     auc_train = roc_auc_score(train_class, p_pre_train)
     print 'training AUC =', auc_train
-    
+
+n_train_array = len(train_class)/float(n_learning_curve) * \
+                    np.array(range(1, n_learning_curve+1))
+ax0.plot(n_train_array, train_learn_avg/(n_learn_avg+1.e-3), 'r-',
+         linewidth=3)
+ax0.plot(n_train_array, cv_learn_avg/(n_learn_avg+1.e-3), 'k-',
+         linewidth=3)
+tp_rate_avg /= float(n_cv)
+ax1.plot(fp_rate_avg, tp_rate_avg, 'k-', linewidth=3)
+
 print '\n Average AUC:'
 print np.mean(auc_values), '+/-', np.std(auc_values)
 
@@ -116,9 +138,10 @@ for f in data_files:
 
 # update submission file
 submission.update_submission(dict(zip(test_files, p_pre_test)),
-                             submission_file, default_value=0.5)
+                             submission_file, default_value=default_prob)
 
 # show plot
+ax0.set_ylim((0.5, 1))
 ax0.set_xlabel('number of training instances')
 ax0.set_ylabel('AUC') 
 ax1.set_xlabel('false positive rate')

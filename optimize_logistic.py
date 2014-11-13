@@ -13,15 +13,16 @@ import cv
 import features
 
 # basic settings (fixed)
-features_file = os.path.abspath('data/Dog_1/features_01.txt')
-type_column = 1    # column listing segment type
-n_cv = 50    # number of CV iterations
-n_pre_hrs = 1    # number of 6-segment preictal clips to use in CV samples
-n_learning_curve = 20    # number of steps for learning curves
+features_file = os.path.abspath('data/Dog_1/features_02.txt')
+type_column = 1    # which column lists the segment type
+n_cv = 100    # number of CV iterations
+n_pre_hrs = 2    # number of 6-segment preictal clips to use in CV samples
+n_learning_curve = 10    # number of steps for learning curves
+min_auc_report = 0.75    # AUC threshold for printing results
 
 # lists of settings for grid search
 # columns to include in model
-feature_columns_grid = ([2], [3], [4], [5], [6], [4, 5], [2, 3, 4, 5, 6])
+feature_columns_grid = itertools.combinations([5, 7, 8, 12, 13, 14, 17], 5)
 # inverse of regularization strength
 C_reg_grid = np.logspace(-3, 1, 13)
 
@@ -32,9 +33,6 @@ avg_auc_best = 0.
 
 for feature_columns, C_reg in itertools.product(feature_columns_grid,
                                                 C_reg_grid):
-    print '\nFeatures used:', feature_columns
-    print 'C =', C_reg
-
     model = linear_model.LogisticRegression(C=C_reg, class_weight='auto')
 
     auc_values = []
@@ -62,7 +60,10 @@ for feature_columns, C_reg in itertools.product(feature_columns_grid,
     # compute average AUC from CV iterations and compare to best value
     avg_auc = np.mean(auc_values)
     std_auc = np.std(auc_values)
-    print 'AUC =', avg_auc, '+/-', std_auc
+    if avg_auc > min_auc_report:
+        print '\nFeatures used:', feature_columns
+        print 'C =', C_reg
+        print 'AUC =', avg_auc, '+/-', std_auc
     if avg_auc > avg_auc_best:
         avg_auc_best = avg_auc
         std_auc_best = std_auc
@@ -90,6 +91,13 @@ ax0 = plt.subplot(121)
 ax1 = plt.subplot(122)
 ax1.plot(np.linspace(0, 1), np.linspace(0, 1), 'k:')
 
+n_learn_avg = np.zeros(n_learning_curve)
+cv_learn_avg = np.zeros(n_learning_curve)
+train_learn_avg = np.zeros(n_learning_curve)
+
+fp_rate_avg = np.linspace(0, 1, num=100)
+tp_rate_avg = np.zeros(len(fp_rate_avg))
+
 # loop over random training-CV sample splittings
 for i_cv in range(n_cv):
     indices = cv.cv_split_by_hour(X, n_pre_hrs=n_pre_hrs)
@@ -103,9 +111,9 @@ for i_cv in range(n_cv):
                              for k in ['train', 'cv']]
 
     # loop over fractions of training data to compute learning curve
+    n_train_array = []
     cv_learn = []
     train_learn = []
-    n_train_array = []
     # shuffle indices
     ix_train_all = np.random.choice(len(train_class), len(train_class),
                                     replace=False)
@@ -113,16 +121,20 @@ for i_cv in range(n_cv):
         n_train = int(len(train_class) * (i_f+1) / float(n_learning_curve))
         ix_train = ix_train_all[:n_train]
         if 1 in train_class[ix_train]: # require at least 1 preictal case
+            n_learn_avg[i_f] += 1
             n_train_array.append(n_train)
             model.fit(train_features[ix_train], train_class[ix_train])
             cv_learn.append(roc_auc_score(cv_class,
                                           model.predict_proba( \
                                               cv_features)[:,1]))
+            cv_learn_avg[i_f] += cv_learn[-1]
             train_learn.append(roc_auc_score(train_class[ix_train],
                                              model.predict_proba( \
                                                 train_features[ix_train])[:,1]))
-    ax0.plot(n_train_array, train_learn, 'r-')
-    ax0.plot(n_train_array, cv_learn, 'k-')
+            train_learn_avg[i_f] += train_learn[-1]
+
+    ax0.plot(n_train_array, train_learn, linestyle='-', color=(1,0.6,0.6))
+    ax0.plot(n_train_array, cv_learn, linestyle='-', color=(0.7,0.7,0.7))
     
     # train the model
     model.fit(train_features, train_class)
@@ -130,13 +142,24 @@ for i_cv in range(n_cv):
     # get classification probabilities, plot ROC curve, and compute AUC
     p_pre = model.predict_proba(cv_features)[:,1]
     fp_rate, tp_rate, thresholds = roc_curve(cv_class, p_pre)
-    ax1.plot(fp_rate, tp_rate, 'k-')
+    tp_rate_avg += np.interp(fp_rate_avg, fp_rate, tp_rate)
+    ax1.plot(fp_rate, tp_rate, linestyle='-', color=(0.7,0.7,0.7))
     auc = roc_auc_score(cv_class, p_pre)
     auc_values.append(auc)
-    
+
+n_train_array = len(train_class)/float(n_learning_curve) * \
+                    np.array(range(1, n_learning_curve+1))
+ax0.plot(n_train_array, train_learn_avg/(n_learn_avg+1.e-3), 'r-',
+         linewidth=3)
+ax0.plot(n_train_array, cv_learn_avg/(n_learn_avg+1.e-3), 'k-',
+         linewidth=3)
+tp_rate_avg /= float(n_cv)
+ax1.plot(fp_rate_avg, tp_rate_avg, 'k-', linewidth=3)
+
 print '\nAverage AUC:'
 print np.mean(auc_values), '+/-', np.std(auc_values)
 
+ax0.set_ylim((0.5, 1))
 ax0.set_xlabel('number of training instances')
 ax0.set_ylabel('AUC') 
 ax1.set_xlabel('false positive rate')
