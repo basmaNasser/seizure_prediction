@@ -11,16 +11,16 @@ import cv
 import features
 import submission
 
-features_file = os.path.abspath('data/Dog_1/features_02.txt')
-data_list_file = os.path.abspath('data/Dog_1/features_02_data_files.txt')
-submission_file = os.path.abspath('submission_Dog_1_04.csv')
-default_prob = 0.83    # default probability for submission
+features_file = os.path.abspath('data/Dog_2/features_01.txt')
+data_list_file = os.path.abspath('data/Dog_2/features_01_data_files.txt')
+submission_file = os.path.abspath('submission_Dog_12_02.csv')
+default_prob = None    # default probability for submission
 type_column = 1    # column listing segment type
 n_cv = 100    # number of CV iterations
 n_pre_hrs = 2    # number of 6-segment preictal clips to use in CV samples
 n_learning_curve = 10    # number of steps for learning curves
 
-feature_columns = [5, 8, 13, 14, 17]    # columns to include in model
+feature_columns = [5, 7, 12, 13, 14]    # columns to include in model
 C_reg = 10.    # inverse of regularization strength
 
 X = np.loadtxt(features_file)
@@ -138,7 +138,8 @@ for f in data_files:
 
 # update submission file
 submission.update_submission(dict(zip(test_files, p_pre_test)),
-                             submission_file, default_value=default_prob)
+                             submission_file, default_value=default_prob,
+                             old_submission_file='submission_Dog_1_03.csv')
 
 # show plot
 ax0.set_ylim((0.5, 1))

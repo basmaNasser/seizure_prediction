@@ -13,7 +13,7 @@ import cv
 import features
 
 # basic settings (fixed)
-features_file = os.path.abspath('data/Dog_1/features_02.txt')
+features_file = os.path.abspath('data/Dog_2/features_01.txt')
 type_column = 1    # which column lists the segment type
 n_cv = 100    # number of CV iterations
 n_pre_hrs = 2    # number of 6-segment preictal clips to use in CV samples
