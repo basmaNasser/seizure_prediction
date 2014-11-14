@@ -13,20 +13,41 @@ import cv
 import features
 
 # basic settings (fixed)
-features_file = os.path.abspath('data/Dog_2/features_01.txt')
-type_column = 1    # which column lists the segment type
+features_files = [os.path.abspath('data/Patient_2/features_01.txt')]
 n_cv = 100    # number of CV iterations
-n_pre_hrs = 2    # number of 6-segment preictal clips to use in CV samples
+n_pre_hrs = 1    # number of 6-segment preictal clips to use in CV samples
 n_learning_curve = 10    # number of steps for learning curves
-min_auc_report = 0.75    # AUC threshold for printing results
+min_auc_report = 0.7    # AUC threshold for printing results
+type_column = 1    # which column lists the segment type
+hour_column = 0    # which column lists the hour index
 
 # lists of settings for grid search
 # columns to include in model
-feature_columns_grid = itertools.combinations([5, 7, 8, 12, 13, 14, 17], 5)
+all_cols = range(2, 26)
+for c in [11]:
+    all_cols.remove(c)
+feature_columns_grid = [[11, i] for i in all_cols]
+#feature_columns_grid = itertools.combinations([5, 7, 8, 12, 13, 14, 17], 5)
 # inverse of regularization strength
-C_reg_grid = np.logspace(-3, 1, 13)
+#C_reg_grid = [1.0]
+C_reg_grid = np.logspace(-3, 1, 5)
 
-X = np.loadtxt(features_file)
+n_hr_col_pre_tot = 0
+n_hr_col_inter_tot = 0
+for i, f in enumerate(features_files):
+    X_i = np.loadtxt(f)
+    seg_type = X_i[:,type_column]
+    n_hr_col_pre = len(np.unique(X_i[seg_type == 1,hour_column]))
+    n_hr_col_inter = len(np.unique(X_i[seg_type == 0,hour_column]))
+    X_i[seg_type == 1,hour_column] += n_hr_col_pre_tot
+    X_i[seg_type == 0,hour_column] += n_hr_col_inter_tot
+    if i == 0:
+        X = np.copy(X_i)
+    else:
+        X = np.vstack((X, X_i))
+    n_hr_col_pre_tot += n_hr_col_pre
+    n_hr_col_inter_tot += n_hr_col_inter
+
 X = features.scale_features(X)
 
 avg_auc_best = 0.
@@ -89,7 +110,6 @@ fig = plt.figure(figsize=(8,4))
 fig.set_tight_layout(True)
 ax0 = plt.subplot(121)
 ax1 = plt.subplot(122)
-ax1.plot(np.linspace(0, 1), np.linspace(0, 1), 'k:')
 
 n_learn_avg = np.zeros(n_learning_curve)
 cv_learn_avg = np.zeros(n_learning_curve)
@@ -120,7 +140,8 @@ for i_cv in range(n_cv):
     for i_f in range(n_learning_curve):
         n_train = int(len(train_class) * (i_f+1) / float(n_learning_curve))
         ix_train = ix_train_all[:n_train]
-        if 1 in train_class[ix_train]: # require at least 1 preictal case
+        # require both preictal and interictal classes to be present
+        if len(np.unique(train_class[ix_train])) == 2:
             n_learn_avg[i_f] += 1
             n_train_array.append(n_train)
             model.fit(train_features[ix_train], train_class[ix_train])
@@ -162,6 +183,7 @@ print np.mean(auc_values), '+/-', np.std(auc_values)
 ax0.set_ylim((0.5, 1))
 ax0.set_xlabel('number of training instances')
 ax0.set_ylabel('AUC') 
+ax1.plot(np.linspace(0, 1), np.linspace(0, 1), 'k:')
 ax1.set_xlabel('false positive rate')
 ax1.set_ylabel('true positive rate')
 plt.show()

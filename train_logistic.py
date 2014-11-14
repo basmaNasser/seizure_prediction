@@ -11,19 +11,36 @@ import cv
 import features
 import submission
 
-features_file = os.path.abspath('data/Dog_2/features_01.txt')
-data_list_file = os.path.abspath('data/Dog_2/features_01_data_files.txt')
-submission_file = os.path.abspath('submission_Dog_12_02.csv')
+features_files = [os.path.abspath('data/Dog_1/features_02.txt')]
+data_list_files = [os.path.abspath('data/Dog_1/features_02_data_files.txt')]
+submission_file = os.path.abspath('submission_all_03.csv')
+old_submission_file = os.path.abspath('sampeSubmission.csv')
 default_prob = None    # default probability for submission
-type_column = 1    # column listing segment type
+type_column = 1    # which column lists the segment type
+hour_column = 0    # which column lists the hour index
 n_cv = 100    # number of CV iterations
-n_pre_hrs = 2    # number of 6-segment preictal clips to use in CV samples
+n_pre_hrs = 1    # number of 6-segment preictal clips to use in CV samples
 n_learning_curve = 10    # number of steps for learning curves
 
-feature_columns = [5, 7, 12, 13, 14]    # columns to include in model
-C_reg = 10.    # inverse of regularization strength
+feature_columns = [8]    # columns to include in model
+C_reg = 0.001    # inverse of regularization strength
 
-X = np.loadtxt(features_file)
+n_hr_col_pre_tot = 0
+n_hr_col_inter_tot = 0
+for i, f in enumerate(features_files):
+    X_i = np.loadtxt(f)
+    seg_type = X_i[:,type_column]
+    n_hr_col_pre = len(np.unique(X_i[seg_type == 1,hour_column]))
+    n_hr_col_inter = len(np.unique(X_i[seg_type == 0,hour_column]))
+    X_i[seg_type == 1,hour_column] += n_hr_col_pre_tot
+    X_i[seg_type == 0,hour_column] += n_hr_col_inter_tot
+    if i == 0:
+        X = np.copy(X_i)
+    else:
+        X = np.vstack((X, X_i))
+    n_hr_col_pre_tot += n_hr_col_pre
+    n_hr_col_inter_tot += n_hr_col_inter
+
 X = features.scale_features(X)
 
 model = linear_model.LogisticRegression(C=C_reg, class_weight='auto')
@@ -35,7 +52,6 @@ fig = plt.figure(figsize=(8,4))
 fig.set_tight_layout(True)
 ax0 = plt.subplot(121)
 ax1 = plt.subplot(122)
-ax1.plot(np.linspace(0, 1), np.linspace(0, 1), 'k:')
 
 n_learn_avg = np.zeros(n_learning_curve)
 cv_learn_avg = np.zeros(n_learning_curve)
@@ -71,7 +87,8 @@ for i_cv in range(n_cv):
     for i_f in range(n_learning_curve):
         n_train = int(len(train_class) * (i_f+1) / float(n_learning_curve))
         ix_train = ix_train_all[:n_train]
-        if 1 in train_class[ix_train]: # require at least 1 preictal case
+        # require both preictal and interictal classes to be present
+        if len(np.unique(train_class[ix_train])) == 2:
             n_learn_avg[i_f] += 1
             n_train_array.append(n_train)
             model.fit(train_features[ix_train], train_class[ix_train])
@@ -129,22 +146,24 @@ test_features = test_features_all[:,np.array(feature_columns)]
 p_pre_test = model.predict_proba(test_features)[:,1]
 
 # get test file names
-with open(data_list_file, 'r') as df:
-    data_files = df.readlines()
 test_files = []
-for f in data_files:
-    if 'test' in f:
-        test_files.append(f.strip())
+for lf in data_list_files:
+    with open(lf, 'r') as df:
+        data_files = df.readlines()
+    for f in data_files:
+        if 'test' in f:
+            test_files.append(f.strip())
 
 # update submission file
 submission.update_submission(dict(zip(test_files, p_pre_test)),
                              submission_file, default_value=default_prob,
-                             old_submission_file='submission_Dog_1_03.csv')
+                             old_submission_file=old_submission_file)
 
 # show plot
 ax0.set_ylim((0.5, 1))
 ax0.set_xlabel('number of training instances')
 ax0.set_ylabel('AUC') 
+ax1.plot(np.linspace(0, 1), np.linspace(0, 1), 'k:')
 ax1.set_xlabel('false positive rate')
 ax1.set_ylabel('true positive rate')
 plt.show()

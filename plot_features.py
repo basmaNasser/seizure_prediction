@@ -8,8 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import features
 
-data_dir = os.path.abspath('data/Dog_1')
-feature_file = os.path.join(data_dir, 'features_02.txt')
+data_dir = os.path.abspath('data/Patient_2')
+feature_file = os.path.join(data_dir, 'features_01.txt')
 
 # define functions and labels for features
 feature_functions = [features.mean_of_means,
@@ -28,15 +28,15 @@ feature_labels = ['MM', 'SDM', 'MSD', 'SDSD', 'MaxD'] + \
 i_feature = np.array(range(len(feature_labels)))
 #
 #use_features = (i_feature < 5)
-#use_features = (i_feature > 4) & (i_feature < 10)
-use_features = (i_feature > 9)
+use_features = (i_feature > 4) & (i_feature < 10)
+#use_features = (i_feature > 9)
 #
 feature_labels_used = list(np.array(feature_labels)[use_features])
 n_features = len(feature_labels_used)
 
 # fraction of interictal outliers to exclude in plot ranges
 # - set to None to show all points
-plot_outlier_fraction = 0.05
+plot_outlier_fraction = None
 # extra fraction of plot to show (not used if plot_outlier_fraction is None)
 plot_f_edge = 0.05
 
@@ -50,7 +50,7 @@ else:
                                             save_file=feature_file,
                                             verbose=True)
 
-X = features.scale_features(X)
+#X = features.scale_features(X)
 
 # plot features for each segment
 fig, axs = plt.subplots(n_features-1, n_features-1, figsize=(9,9),
@@ -60,9 +60,9 @@ for i in range(n_features-1):
     for j in range(i+1, n_features-1):
         fig.delaxes(axs[i,j])
         
-for seg_type, color, marker in zip([0, 1],
-                                   ['k', 'r'],
-                                   ['.', 'x']):
+for seg_type, color, marker in zip([-1, 0, 1],
+                                   ['b', 'y', 'r'],
+                                   ['o', 'x', '+']):
     # select rows matching a given segment type and remove (hour, type) cols.
     seg_features = X[X[:,1] == seg_type, 2:]
 
@@ -74,7 +74,8 @@ for seg_type, color, marker in zip([0, 1],
             ax = axs[i-1, j]
             fx = seg_features_used[:,j]
             fy = seg_features_used[:,i]
-            ax.scatter(fx, fy, c=color, marker=marker, s=20)
+            ax.scatter(fx, fy, edgecolors=color, facecolors='none',
+                       marker=marker, s=20)
             if seg_type == 0 and plot_outlier_fraction is not None:
                 i_min = int(plot_outlier_fraction*len(fx))
                 i_max = int((1.-plot_outlier_fraction)*len(fx))

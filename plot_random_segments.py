@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 import load_data
 
-data_dir = os.path.abspath('data/Dog_1')
+data_dir = os.path.abspath('data/Patient_1')
 
 # width of Gaussian filter in seconds
 filter_width = 0.0
@@ -50,8 +50,8 @@ freq = np.fft.rfftfreq(voltage.size, d=1./pre_data['sampling_rate_hz'])
 power = np.abs(np.fft.rfft(voltage))**2
 binned_power = np.histogram(freq, freq_bin_edges, weights=power)[0] / \
                np.histogram(freq, freq_bin_edges)[0]
-print freq_bins
-print binned_power
+#print freq_bins
+#print binned_power
 plt.loglog(freq, power, 'k-')
 plt.loglog(freq_bins, binned_power, 'r-o')
 plt.xlabel('frequency [Hz]')
@@ -73,8 +73,8 @@ freq = np.fft.rfftfreq(voltage.size, d=1./inter_data['sampling_rate_hz'])
 power = np.abs(np.fft.rfft(voltage))**2
 binned_power = np.histogram(freq, freq_bin_edges, weights=power)[0] / \
                np.histogram(freq, freq_bin_edges)[0]
-print freq_bins
-print binned_power
+#print freq_bins
+#print binned_power
 plt.loglog(freq, power, 'k-')
 plt.loglog(freq_bins, binned_power, 'r-o')
 plt.xlabel('frequency [Hz]')
