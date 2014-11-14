@@ -17,9 +17,14 @@ def cv_split_by_hour(X, hour_column=0, type_column=1, n_pre_hrs=1):
     """
 
     # get lists of unique preictal and interictal hour indices
+    # (only including hours with all 6 segments)
     seg_type = X[:, type_column]
-    pre_hrs = np.unique(X[seg_type == 1, hour_column])
-    inter_hrs = np.unique(X[seg_type == 0, hour_column])
+    pre_hrs, pre_hr_count = np.unique(X[seg_type == 1, hour_column],
+                                      return_counts=True)
+    pre_hrs = pre_hrs[pre_hr_count % 6 == 0]
+    inter_hrs, inter_hr_count = np.unique(X[seg_type == 0, hour_column],
+                                          return_counts=True)
+    inter_hrs = inter_hrs[inter_hr_count % 6 == 0]
 
     # choose random hour indices for CV sample
     if n_pre_hrs >= len(pre_hrs):
@@ -27,7 +32,7 @@ def cv_split_by_hour(X, hour_column=0, type_column=1, n_pre_hrs=1):
     elif n_pre_hrs == 1:
         cv_pre_hrs = np.array([np.random.choice(pre_hrs)])
     else:
-        cv_pre_hrs = np.random.choice(pre_hrs, n_pre_hrs)
+        cv_pre_hrs = np.random.choice(pre_hrs, n_pre_hrs, replace=False)
     cv_inter_hrs = np.random.choice(inter_hrs,
                                     len(inter_hrs)*int(n_pre_hrs)/len(pre_hrs),
                                     replace=False)
