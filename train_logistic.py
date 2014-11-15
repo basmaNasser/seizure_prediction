@@ -158,6 +158,10 @@ prob_model.fit(model.predict_proba(train_features)[:,1], train_class)
 test_features_all = X[X[:,type_column] == -1,:]
 test_features = test_features_all[:,np.array(feature_columns)]
 p_pre_test = prob_model.transform(model.predict_proba(test_features)[:,1])
+for i in range(len(p_pre_test)):
+    if np.isnan(p_pre_test[i]) or np.isinf(p_pre_test[i]):
+        print 'Setting NaN or Inf probability to 0.'
+        p_pre_test[i] = 0.
 
 # get test file names
 test_files = []
