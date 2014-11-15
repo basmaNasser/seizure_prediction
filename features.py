@@ -132,3 +132,67 @@ def scale_features(feature_matrix, exclude_columns=[0, 1]):
         if i not in exclude_columns:
             X[:,i] = (X[:,i] - np.mean(X[:,i])) / np.std(X[:,i])
     return X
+
+def remove_outliers(feature_matrix, n_sigma=2, verbose=False):
+    """
+    Given a feature matrix with each row containing a feature vector
+    for a particular instance, identify instances grouped by the hour
+    index (listed in column 0) for each preictal or interictal segment
+    (type 0 or 1, listed in column 1) where the mean value of any
+    feature is more than n_sigma standard deviations away from the
+    rest of the instances, unless that mean value falls within the extent
+    of that feature in the test data set (type -1).
+    Return the feature matrix with outlier instance groups removed
+    and the row indices of the remaining instances (including test data).
+    """
+    # copy matrix to avoid unintended changes
+    X = np.copy(feature_matrix)
+    indices = range(X.shape[0])
+    # make masks for preictal, interictal, and test instances
+    mask_pre = X[:,1] == 1
+    mask_inter = X[:,1] == 0
+    mask_test = X[:,1] == -1
+    # extract the test instances
+    X_test = X[mask_test,:]
+    # get the hour indices for preictal and interictal samples
+    hrs_pre = np.unique(X[mask_pre,0])
+    hrs_inter = np.unique(X[mask_inter,0])
+
+    # loop over the data set until no more outliers are found
+    outliers_remain = True
+    count = 0
+    while outliers_remain:
+        n_outliers = 0
+        count += 1
+        # loop over hour indices and segment types
+        for i_hr, seg_type in zip(np.concatenate((hrs_pre, hrs_inter), axis=1),
+                                  np.concatenate((np.repeat(1, len(hrs_pre)),
+                                                  np.repeat(0, len(hrs_inter))),
+                                                 axis=1)):
+            mask_trial = (X[:,1] == seg_type) & (X[:,0] == i_hr)
+            trial_indices = np.array(range(len(mask_trial)))[mask_trial]
+            trial_hr = X[mask_trial]
+            other_hrs = X[((X[:,1] != seg_type) | \
+                          (X[:,0] != i_hr)) & \
+                          (X[:,1] != -1),:]
+            # compute feature statistics (excluding hour and type columns)
+            trial_mean = np.mean(trial_hr[:,2:], axis=0)
+            other_mean = np.mean(other_hrs[:,2:], axis=0)
+            other_std = np.std(other_hrs[:,2:], axis=0)
+            # check for outlier
+            mean_outlier = np.abs(trial_mean-other_mean) > n_sigma*other_std
+            lt_test_min = trial_mean < X_test[:,2:].min(axis=0)
+            gt_test_max = trial_mean > X_test[:,2:].max(axis=0)
+            if np.any(mean_outlier & (lt_test_min | gt_test_max)):
+                n_outliers += 1
+                # remove rows from feature matrix and index array
+                X = np.delete(X, trial_indices, axis=0)
+                indices = np.delete(indices, trial_indices)
+
+        if verbose:
+            print 'Pass ' + str(count) + ': ' + str(n_outliers) + \
+                    ' outlier groups removed.'
+        if n_outliers == 0:
+            outliers_remain = False
+
+        return X, indices

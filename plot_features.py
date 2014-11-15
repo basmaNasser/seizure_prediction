@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import features
 
-data_dir = os.path.abspath('data/Patient_2')
+data_dir = os.path.abspath('data/Dog_3')
 feature_file = os.path.join(data_dir, 'features_01.txt')
 
 # define functions and labels for features
@@ -43,12 +43,17 @@ plot_f_edge = 0.05
 # compute and save features, or laod previously computed features
 if os.path.isfile(feature_file):
     X = np.loadtxt(feature_file)
+    data_files = None
 else:
     print 'Computing features...'
     X, data_files = features.compute_feature_matrix(data_dir,
                                             feature_functions, feature_labels,
                                             save_file=feature_file,
                                             verbose=True)
+
+X, outlier_indices = features.remove_outliers(X, n_sigma=2, verbose=True)
+if data_files is not None:
+    data_files = np.delete(data_files, outlier_indices)
 
 #X = features.scale_features(X)
 
