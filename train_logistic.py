@@ -7,14 +7,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import linear_model
 from sklearn.metrics import roc_curve, roc_auc_score
+from sklearn.isotonic import IsotonicRegression
 import cv
 import features
 import submission
 
-features_files = [os.path.abspath('data/Dog_1/features_02.txt')]
-data_list_files = [os.path.abspath('data/Dog_1/features_02_data_files.txt')]
+features_files = [os.path.abspath('data/Dog_5/features_01.txt')]
+data_list_files = [os.path.abspath('data/Dog_5/features_01_data_files.txt')]
 submission_file = os.path.abspath('submission_all_03.csv')
-old_submission_file = os.path.abspath('sampeSubmission.csv')
+old_submission_file = os.path.abspath('submission_all_03.csv')
 default_prob = None    # default probability for submission
 type_column = 1    # which column lists the segment type
 hour_column = 0    # which column lists the hour index
@@ -22,8 +23,8 @@ n_cv = 100    # number of CV iterations
 n_pre_hrs = 1    # number of 6-segment preictal clips to use in CV samples
 n_learning_curve = 10    # number of steps for learning curves
 
-feature_columns = [8]    # columns to include in model
-C_reg = 0.001    # inverse of regularization strength
+feature_columns = [24, 25]    # columns to include in model
+C_reg = 0.01    # inverse of regularization strength
 
 n_hr_col_pre_tot = 0
 n_hr_col_inter_tot = 0
@@ -89,16 +90,21 @@ for i_cv in range(n_cv):
         ix_train = ix_train_all[:n_train]
         # require both preictal and interictal classes to be present
         if len(np.unique(train_class[ix_train])) == 2:
+            model.fit(train_features[ix_train], train_class[ix_train])
+            prob_model = IsotonicRegression(out_of_bounds='clip')
+            prob_model.fit(model.predict_proba(train_features[ix_train])[:,1],
+                           train_class[ix_train])
+            cv_prob = prob_model.transform( \
+                    model.predict_proba(cv_features)[:,1])
+            train_prob = prob_model.transform( \
+                    model.predict_proba(train_features[ix_train])[:,1])
+            if np.any(np.isnan(cv_prob)) or np.any(np.isnan(train_prob)):
+                continue
+            cv_learn.append(roc_auc_score(cv_class, cv_prob))
+            train_learn.append(roc_auc_score(train_class[ix_train], train_prob))
             n_learn_avg[i_f] += 1
             n_train_array.append(n_train)
-            model.fit(train_features[ix_train], train_class[ix_train])
-            cv_learn.append(roc_auc_score(cv_class,
-                                          model.predict_proba( \
-                                              cv_features)[:,1]))
             cv_learn_avg[i_f] += cv_learn[-1]
-            train_learn.append(roc_auc_score(train_class[ix_train],
-                                             model.predict_proba( \
-                                                train_features[ix_train])[:,1]))
             train_learn_avg[i_f] += train_learn[-1]
             
     ax0.plot(n_train_array, train_learn, linestyle='-', color=(1,0.6,0.6))
@@ -108,8 +114,12 @@ for i_cv in range(n_cv):
     model.fit(train_features, train_class)
     print 'Feature coefficients:', model.coef_
 
+    # fit model to normalize probabilities
+    prob_model = IsotonicRegression(out_of_bounds='clip')
+    prob_model.fit(model.predict_proba(train_features)[:,1], train_class)
+
     # get classification probabilities, plot ROC curve, and compute AUC
-    p_pre = model.predict_proba(cv_features)[:,1]
+    p_pre = prob_model.transform(model.predict_proba(cv_features)[:,1])
     fp_rate, tp_rate, thresholds = roc_curve(cv_class, p_pre)
     tp_rate_avg += np.interp(fp_rate_avg, fp_rate, tp_rate)
     ax1.plot(fp_rate, tp_rate, linestyle='-', color=(0.7,0.7,0.7))
@@ -118,7 +128,7 @@ for i_cv in range(n_cv):
     auc_values.append(auc)
 
     # compute AUC for training sample
-    p_pre_train = model.predict_proba(train_features)[:,1]
+    p_pre_train = prob_model.transform(model.predict_proba(train_features)[:,1])
     auc_train = roc_auc_score(train_class, p_pre_train)
     print 'training AUC =', auc_train
 
@@ -140,10 +150,14 @@ train_features = train_features_all[:,np.array(feature_columns)]
 train_class = train_features_all[:,type_column]
 model.fit(train_features, train_class)
 
+# fit model to normalize probabilities
+prob_model = IsotonicRegression(out_of_bounds='clip')
+prob_model.fit(model.predict_proba(train_features)[:,1], train_class)
+
 # predict probabilities for test data
 test_features_all = X[X[:,type_column] == -1,:]
 test_features = test_features_all[:,np.array(feature_columns)]
-p_pre_test = model.predict_proba(test_features)[:,1]
+p_pre_test = prob_model.transform(model.predict_proba(test_features)[:,1])
 
 # get test file names
 test_files = []
