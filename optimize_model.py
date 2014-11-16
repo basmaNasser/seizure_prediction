@@ -35,9 +35,9 @@ def optimize_model(features_files, submission_file,
             feature_columns_grid = [[i] for i in feature_columns]
         else:
             remaining_features = list(feature_columns)
-            for i in best_features:
-                remaining_feature_columns.remove(i)
-            feature_columns_grid = [best_features + [i] for i in \
+            for i in best_model['columns']:
+                remaining_features.remove(i)
+            feature_columns_grid = [best_model['columns'] + [i] for i in \
                                     remaining_features]
         for f_cols in feature_columns_grid:
             # vary model parameters
@@ -53,10 +53,11 @@ def optimize_model(features_files, submission_file,
                         ' AUC = {0:.2f}+/-{1:.2f}'.format(auc_mean, auc_std),
                 sys.stdout.flush()
                 if auc_mean > best_model['AUC']:
-                    print '\n', model_args
+                    print '\n    ', model_args
                     best_model = {'AUC': auc_mean,
                                   'columns': f_cols,
                                   'parameters': model_args}
+    print '\r' + 70*' ' + '\n'
 
     # compute predictions for best model, update submission CSV,
     # and plot learning curves and ROC curve
