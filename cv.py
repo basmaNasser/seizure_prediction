@@ -12,6 +12,8 @@ def cv_split_by_hour(X, hour_column=0, type_column=1, n_pre_hrs=1):
     n_pre_hrs/N of the interictal (seg_type=0) segments (keeping segments
     in the same hour together), where N is the total number of preictal
     hours (1/6 the number of preictal segments).
+    If n_pre_hrs < 1, interpret it as the approximate fraction of
+    preictal hours in the CV subsample instead (n_pre_hrs/N).
     Return the indices of the CV subsample and the remaining
     indices, which form the training subsample.
     """
@@ -29,7 +31,9 @@ def cv_split_by_hour(X, hour_column=0, type_column=1, n_pre_hrs=1):
     # choose random hour indices for CV sample
     if n_pre_hrs >= len(pre_hrs):
         sys.exit('Too many preictal hours for CV sample.')
-    elif n_pre_hrs == 1:
+    if n_pre_hrs < 1:
+        n_pre_hrs = np.max([int(n_pre_hrs*len(pre_hrs)), 1])
+    if n_pre_hrs == 1:
         cv_pre_hrs = np.array([np.random.choice(pre_hrs)])
     else:
         cv_pre_hrs = np.random.choice(pre_hrs, n_pre_hrs, replace=False)

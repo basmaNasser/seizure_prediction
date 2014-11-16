@@ -2,186 +2,215 @@
 #
 # Train a logistic regression model with cross-validation samples.
 
-import os.path
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn import linear_model
 from sklearn.metrics import roc_curve, roc_auc_score
 from sklearn.isotonic import IsotonicRegression
 import cv
 import features
 import submission
 
-features_files = [os.path.abspath('data/Dog_5/features_01.txt')]
-data_list_files = [os.path.abspath('data/Dog_5/features_01_data_files.txt')]
-submission_file = os.path.abspath('submission_all_03.csv')
-old_submission_file = os.path.abspath('submission_all_03.csv')
-default_prob = None    # default probability for submission
-type_column = 1    # which column lists the segment type
-hour_column = 0    # which column lists the hour index
-n_cv = 100    # number of CV iterations
-n_pre_hrs = 1    # number of 6-segment preictal clips to use in CV samples
-n_learning_curve = 10    # number of steps for learning curves
+def predict_probs(model, train_class, train_features, test_features,
+                  normalize_probs=False):
+    """
+    Fit a given binary classification model to training sample features
+    and return predicted probabilities for the positive class for
+    the training and test samples.
+    """
+    model.fit(train_features, train_class)
+    train_prob, test_prob = [model.predict_proba(f)[:,1] for f in \
+                                    (train_features, test_features)]
+    if normalize_probs == 'IsoReg':
+        prob_model = IsotonicRegression(out_of_bounds='clip')
+        prob_model.fit(train_prob, train_class)
+        train_prob, test_prob = [prob_model.transform(p) for p in \
+                                        (train_prob, test_prob)]
+    return (train_prob, test_prob)
+        
 
-feature_columns = [24, 25]    # columns to include in model
-C_reg = 0.01    # inverse of regularization strength
-
-n_hr_col_pre_tot = 0
-n_hr_col_inter_tot = 0
-for i, f in enumerate(features_files):
-    X_i = np.loadtxt(f)
-    seg_type = X_i[:,type_column]
-    n_hr_col_pre = len(np.unique(X_i[seg_type == 1,hour_column]))
-    n_hr_col_inter = len(np.unique(X_i[seg_type == 0,hour_column]))
-    X_i[seg_type == 1,hour_column] += n_hr_col_pre_tot
-    X_i[seg_type == 0,hour_column] += n_hr_col_inter_tot
-    if i == 0:
-        X = np.copy(X_i)
-    else:
-        X = np.vstack((X, X_i))
-    n_hr_col_pre_tot += n_hr_col_pre
-    n_hr_col_inter_tot += n_hr_col_inter
-
-X = features.scale_features(X)
-
-model = linear_model.LogisticRegression(C=C_reg, class_weight='auto')
-
-auc_values = []
-
-# set up learning curve and ROC plots
-fig = plt.figure(figsize=(8,4))
-fig.set_tight_layout(True)
-ax0 = plt.subplot(121)
-ax1 = plt.subplot(122)
-
-n_learn_avg = np.zeros(n_learning_curve)
-cv_learn_avg = np.zeros(n_learning_curve)
-train_learn_avg = np.zeros(n_learning_curve)
-
-fp_rate_avg = np.linspace(0, 1, num=100)
-tp_rate_avg = np.zeros(len(fp_rate_avg))
-
-# loop over random training-CV sample splittings
-for i_cv in range(n_cv):
-    print '\nCV iteration', i_cv+1
-    indices = cv.cv_split_by_hour(X, n_pre_hrs=n_pre_hrs)
-
-    # get feature matrices and class arrays for training and CV samples
-    train_features_all, cv_features_all = [X[indices[k],:] \
-                                           for k in ['train', 'cv']]
-    train_features, cv_features = [y[:,np.array(feature_columns)] for y in \
-                                   [train_features_all, cv_features_all]]
-    train_class, cv_class = [X[indices[k], type_column] \
-                             for k in ['train', 'cv']]
-
-    pct_train = 100.*len(train_class)/float(len(train_class)+len(cv_class))
-    print len(train_class), 'training instances ({0:.1f}%)'.format(pct_train)
-    print len(cv_class), 'CV instances ({0:.1f}%)'.format(100.-pct_train)
-
-    # loop over fractions of training data to compute learning curve
-    cv_learn = []
-    train_learn = []
+def learning_curve(model, train, test, n=10, metric=roc_auc_score, **kwargs):
+    """
+    Compute learning curves (accuracy or other evaluation metric for training
+    and test samples vs. number of training instances) for a given model.
+    """
+    learn_test = []
+    learn_train = []
     n_train_array = []
+    mask = []
     # shuffle indices
-    ix_train_all = np.random.choice(len(train_class), len(train_class),
+    ix_train_all = np.random.choice(len(train[1]), len(train[1]),
                                     replace=False)
-    for i_f in range(n_learning_curve):
-        n_train = int(len(train_class) * (i_f+1) / float(n_learning_curve))
+    for i in range(n):
+        n_train = int(len(train[1]) * (i+1) / float(n))
         ix_train = ix_train_all[:n_train]
         # require both preictal and interictal classes to be present
-        if len(np.unique(train_class[ix_train])) == 2:
-            model.fit(train_features[ix_train], train_class[ix_train])
-            prob_model = IsotonicRegression(out_of_bounds='clip')
-            prob_model.fit(model.predict_proba(train_features[ix_train])[:,1],
-                           train_class[ix_train])
-            cv_prob = prob_model.transform( \
-                    model.predict_proba(cv_features)[:,1])
-            train_prob = prob_model.transform( \
-                    model.predict_proba(train_features[ix_train])[:,1])
-            if np.any(np.isnan(cv_prob)) or np.any(np.isnan(train_prob)):
+        if len(np.unique(train[1][ix_train])) == 2:
+            train_prob, test_prob = predict_probs(model, train[1][ix_train], \
+                                      train[0][ix_train], \
+                                      test[0], **kwargs)
+            if np.any(np.isnan(test_prob)) or np.any(np.isnan(train_prob)):
                 continue
-            cv_learn.append(roc_auc_score(cv_class, cv_prob))
-            train_learn.append(roc_auc_score(train_class[ix_train], train_prob))
-            n_learn_avg[i_f] += 1
+            learn_test.append(metric(test[1], test_prob))
+            learn_train.append(metric(train[1][ix_train], train_prob))
             n_train_array.append(n_train)
-            cv_learn_avg[i_f] += cv_learn[-1]
-            train_learn_avg[i_f] += train_learn[-1]
-            
-    ax0.plot(n_train_array, train_learn, linestyle='-', color=(1,0.6,0.6))
-    ax0.plot(n_train_array, cv_learn, linestyle='-', color=(0.7,0.7,0.7))
+            mask.append(True)
+        else:
+            mask.append(False)
+    mask = np.array(mask)
+
+    return (mask, n_train_array, learn_train, learn_test)
+
+
+def train_model(features_files, feature_columns, classifier, model_args,
+                outlier_sigma=None, scale_features=True,
+                submission_file=None, save_settings=False, plot=False,
+                normalize_probs=False, n_cv=10, f_cv=0.3, verbose=False):
+    """
+    Fit a classification model (classifier, using arguments in model_args)
+    to the features in columns feature_columns in the file(s) in
+    features_files. Use CV with n_cv random training-CV sample splittings,
+    each containing a fraction f_cv in the CV subsample, to estimate AUC
+    for the fit.
+    """
+    settings = locals()
+    hour_column = 0
+    type_column = 1
+
+    # read in feature matrix from file(s)
+    X = features.load_features(features_files)
+    # remove outliers
+    if outlier_sigma is not None:
+        X, retained_indices = features.remove_outliers(X, n_sigma=outlier_sigma)
+    # scale features
+    if scale_features:
+        X = features.scale_features(X)
+
+    # set up model
+    model = classifier(**model_args)
+
+    # set up plot
+    if plot:
+        fig = plt.figure(figsize=(8,4))
+        fig.set_tight_layout(True)
+        ax0 = plt.subplot(121)
+        ax1 = plt.subplot(122)
+        # initialize plot arrays
+        n_learn = np.zeros(10)
+        learn_cv_avg = np.zeros(len(n_learn))
+        learn_train_avg = np.zeros(len(n_learn))
+        fp_rate_avg = np.linspace(0, 1, num=100)
+        tp_rate_avg = np.zeros(len(fp_rate_avg))
     
-    # train the model
-    model.fit(train_features, train_class)
-    print 'Feature coefficients:', model.coef_
+    # loop over training-CV sample splittings
+    auc_values = []
+    for i_cv in range(n_cv):
+        cv_indices = cv.cv_split_by_hour(X, n_pre_hrs=f_cv)
+        if verbose:
+            print '\nCV iteration', i_cv+1
+            print len(cv_indices['train']), 'training instances'
+            print len(cv_indices['cv']), 'CV instances'
+        # get feature matrices and class arrays for training and CV samples
+        train_features_all, cv_features_all = [X[cv_indices[k],:] \
+                                               for k in ['train', 'cv']]
+        train_features, cv_features = [y[:,np.array(feature_columns)] for y in \
+                                       [train_features_all, cv_features_all]]
+        train_class = train_features_all[:,type_column]
+        cv_class = cv_features_all[:,type_column]
 
-    # fit model to normalize probabilities
-    prob_model = IsotonicRegression(out_of_bounds='clip')
-    prob_model.fit(model.predict_proba(train_features)[:,1], train_class)
+        # compute learning curve
+        if plot:
+            learn_mask, n_train, learn_train, learn_cv = \
+                    learning_curve(model, (train_features, train_class),
+                                   (cv_features, cv_class), n=len(n_learn),
+                                   normalize_probs=normalize_probs)
+            n_learn[learn_mask] += 1
+            learn_train_avg[learn_mask] += learn_train
+            learn_cv_avg[learn_mask] += learn_cv
+            ax0.plot(n_train, learn_train, linestyle='-', color=(1,0.6,0.6))
+            ax0.plot(n_train, learn_cv, linestyle='-', color=(0.7,0.7,0.7))
 
-    # get classification probabilities, plot ROC curve, and compute AUC
-    p_pre = prob_model.transform(model.predict_proba(cv_features)[:,1])
-    fp_rate, tp_rate, thresholds = roc_curve(cv_class, p_pre)
-    tp_rate_avg += np.interp(fp_rate_avg, fp_rate, tp_rate)
-    ax1.plot(fp_rate, tp_rate, linestyle='-', color=(0.7,0.7,0.7))
-    auc = roc_auc_score(cv_class, p_pre)
-    print 'AUC =', auc
-    auc_values.append(auc)
+        # predict probabilities
+        train_prob, cv_prob = predict_probs(model, train_class, train_features,
+                                            cv_features, normalize_probs)
+        if verbose:
+            print 'Feature coefficients:', model.coef_
 
-    # compute AUC for training sample
-    p_pre_train = prob_model.transform(model.predict_proba(train_features)[:,1])
-    auc_train = roc_auc_score(train_class, p_pre_train)
-    print 'training AUC =', auc_train
+        # compute AUC
+        auc = roc_auc_score(cv_class, cv_prob)
+        auc_values.append(auc)
+        if verbose:
+            print 'training AUC =', roc_auc_score(train_class, train_prob)
+            print 'CV AUC =', auc
 
-n_train_array = len(train_class)/float(n_learning_curve) * \
-                    np.array(range(1, n_learning_curve+1))
-ax0.plot(n_train_array, train_learn_avg/(n_learn_avg+1.e-3), 'r-',
-         linewidth=3)
-ax0.plot(n_train_array, cv_learn_avg/(n_learn_avg+1.e-3), 'k-',
-         linewidth=3)
-tp_rate_avg /= float(n_cv)
-ax1.plot(fp_rate_avg, tp_rate_avg, 'k-', linewidth=3)
+        # plot ROC curve
+        if plot:
+            fp_rate, tp_rate, thresholds = roc_curve(cv_class, cv_prob)
+            tp_rate_avg += np.interp(fp_rate_avg, fp_rate, tp_rate)
+            ax1.plot(fp_rate, tp_rate, linestyle='-', color=(0.7,0.7,0.7))
+            
 
-print '\n Average AUC:'
-print np.mean(auc_values), '+/-', np.std(auc_values)
+    # compute mean and std. dev. of AUC over CV iterations
+    auc_mean = np.mean(auc_values)
+    auc_std = np.std(auc_values)
+    if verbose:
+        print '\nAverage AUC:', auc_mean, '+/-', auc_std
 
-# re-train on entire training sample
-train_features_all = X[(X[:,type_column] == 0) | (X[:,type_column] == 1),:]
-train_features = train_features_all[:,np.array(feature_columns)]
-train_class = train_features_all[:,type_column]
-model.fit(train_features, train_class)
+    # update submission CSV file
+    if submission_file is not None:
+        train_features_all = X[(X[:,type_column] == 0) | \
+                               (X[:,type_column] == 1),:]
+        train_features = train_features_all[:,np.array(feature_columns)]
+        train_class = train_features_all[:,type_column]
+        test_features_all = X[X[:,type_column] == -1,:]
+        test_features = test_features_all[:,np.array(feature_columns)]
+        train_prob, test_prob = predict_probs(model, train_class,
+                                              train_features, test_features,
+                                              normalize_probs)
+        test_files = []
+        for ff in features_files:
+            data_list_file = '.'.join(ff.split('.')[:-1]) + '_data_files.txt'
+            with open(data_list_file, 'r') as df:
+                data_files = np.array(df.readlines())
+                if outlier_sigma is not None:
+                    data_files = data_files[retained_indices]
+            for f in data_files:
+                if 'test' in f:
+                    test_files.append(f.strip())
+        submission.update_submission(dict(zip(test_files, test_prob)),
+                                     submission_file)
 
-# fit model to normalize probabilities
-prob_model = IsotonicRegression(out_of_bounds='clip')
-prob_model.fit(model.predict_proba(train_features)[:,1], train_class)
+    # save settings
+    if save_settings:
+        if submission_file is not None:
+            settings_file = '.'.join(submission_file.split('.')[:-1]) + \
+                                '_settings.txt'
+        else:
+            settings_file = 'train_model_settings.txt'
+        with open(settings_file, 'w') as sf:
+            for s in ['features_files', 'feature_columns', 'classifier',
+                      'model_args', 'outlier_sigma', 'scale_features',
+                      'submission_file', 'normalize_probs']:
+                if s in settings:
+                    sf.write(s + ': ' + str(settings[s]) + '\n')
 
-# predict probabilities for test data
-test_features_all = X[X[:,type_column] == -1,:]
-test_features = test_features_all[:,np.array(feature_columns)]
-p_pre_test = prob_model.transform(model.predict_proba(test_features)[:,1])
-for i in range(len(p_pre_test)):
-    if np.isnan(p_pre_test[i]) or np.isinf(p_pre_test[i]):
-        print 'Setting NaN or Inf probability to 0.'
-        p_pre_test[i] = 0.
+    # plot average learning curves and ROC curve
+    if plot:
+        n_train_array = len(train_class)/float(len(n_learn)) * \
+                        np.array(range(1, len(n_learn)+1))
+        ax0.plot(n_train_array, learn_train_avg/(n_learn+1.e-3), 'r-',
+                 linewidth=3)
+        ax0.plot(n_train_array, learn_cv_avg/(n_learn+1.e-3), 'k-',
+                 linewidth=3)
+        tp_rate_avg /= float(n_cv)
+        ax1.plot(fp_rate_avg, tp_rate_avg, 'k-', linewidth=3)
+        # display plot
+        ax0.set_ylim((0.5, 1))
+        ax0.set_xlabel('number of training instances')
+        ax0.set_ylabel('AUC') 
+        ax1.plot(np.linspace(0, 1), np.linspace(0, 1), 'k:', linewidth=2)
+        ax1.set_xlabel('false positive rate')
+        ax1.set_ylabel('true positive rate')
+        plt.show(block=False)
 
-# get test file names
-test_files = []
-for lf in data_list_files:
-    with open(lf, 'r') as df:
-        data_files = df.readlines()
-    for f in data_files:
-        if 'test' in f:
-            test_files.append(f.strip())
+    return (model, auc_mean, auc_std)
 
-# update submission file
-submission.update_submission(dict(zip(test_files, p_pre_test)),
-                             submission_file, default_value=default_prob,
-                             old_submission_file=old_submission_file)
-
-# show plot
-ax0.set_ylim((0.5, 1))
-ax0.set_xlabel('number of training instances')
-ax0.set_ylabel('AUC') 
-ax1.plot(np.linspace(0, 1), np.linspace(0, 1), 'k:')
-ax1.set_xlabel('false positive rate')
-ax1.set_ylabel('true positive rate')
-plt.show()

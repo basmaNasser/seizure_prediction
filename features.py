@@ -119,6 +119,39 @@ def compute_feature_matrix(data_dir, functions, labels,
         
     return (X, data_files)
 
+def load_features(files, hour_column=0, type_column=1):
+    """
+    Read and combine feature matrices from multiple files,
+    assumed to have the same set of columns.
+    Hour indices in files after the first are incremented so
+    that the indices for preictal and interictal subsamples
+    remain unique, with only 6 segments per hour index.
+    """
+    n_hr_col_pre_tot = 0
+    n_hr_col_inter_tot = 0
+    
+    for i, f in enumerate(files):
+        X_i = np.loadtxt(f)
+        
+        # count the number of hour indices for preictal and interictal segments
+        seg_type = X_i[:,type_column]
+        n_hr_col_pre = len(np.unique(X_i[seg_type == 1,hour_column]))
+        n_hr_col_inter = len(np.unique(X_i[seg_type == 0,hour_column]))
+        
+        # increment hour indices
+        X_i[seg_type == 1,hour_column] += n_hr_col_pre_tot
+        X_i[seg_type == 0,hour_column] += n_hr_col_inter_tot
+        
+        # combine feature matrices
+        if i == 0:
+            X = np.copy(X_i)
+        else:
+            X = np.vstack((X, X_i))
+        n_hr_col_pre_tot += n_hr_col_pre
+        n_hr_col_inter_tot += n_hr_col_inter
+
+    return X
+
 def scale_features(feature_matrix, exclude_columns=[0, 1]):
     """
     Given a feature matrix with each row containing a feature vector

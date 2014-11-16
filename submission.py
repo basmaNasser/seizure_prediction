@@ -1,7 +1,9 @@
 # Functions for generating Kaggle submission files.
 
+import os.path
+
 def update_submission(predictions, new_submission_file,
-                      old_submission_file='sampleSubmission.csv',
+                      old_submission_file=None,
                       default_value=None):
     """
     Read predicted probabilities for test data files from
@@ -13,6 +15,12 @@ def update_submission(predictions, new_submission_file,
     submission file will be used), and write the new predictions
     to new_submission file.
     """
+    if old_submission_file is None:
+        if os.path.isfile(new_submission_file):
+            old_submission_file = new_submission_file
+        else:
+            old_submission_file = 'sampleSubmission.csv'
+
     with open(old_submission_file, 'r') as f:
         old_lines = f.readlines()
 

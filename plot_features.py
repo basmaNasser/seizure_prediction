@@ -52,8 +52,6 @@ else:
                                             verbose=True)
 
 X, outlier_indices = features.remove_outliers(X, n_sigma=2, verbose=True)
-if data_files is not None:
-    data_files = np.delete(data_files, outlier_indices)
 
 #X = features.scale_features(X)
 
