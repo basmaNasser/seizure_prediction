@@ -184,14 +184,17 @@ def train_model(features_files, feature_columns, classifier, model_args,
         if submission_file is not None:
             settings_file = '.'.join(submission_file.split('.')[:-1]) + \
                                 '_settings.txt'
+            open_mode = 'a'
         else:
             settings_file = 'train_model_settings.txt'
-        with open(settings_file, 'w') as sf:
+            open_mode = 'w'
+        with open(settings_file, open_mode) as sf:
             for s in ['features_files', 'feature_columns', 'classifier',
                       'model_args', 'outlier_sigma', 'scale_features',
                       'submission_file', 'normalize_probs']:
                 if s in settings:
                     sf.write(s + ': ' + str(settings[s]) + '\n')
+            sf.write('\n')
 
     # plot average learning curves and ROC curve
     if plot:
