@@ -194,11 +194,11 @@ def train_model(features_files, feature_columns, classifier, model_args,
                       'submission_file', 'normalize_probs']:
                 if s in settings:
                     sf.write(s + ': ' + str(settings[s]) + '\n')
-            sf.write('\n')
+            sf.write('AUC = {0:.2f}+/-{1:.2f}\n\n'.format(auc_mean, auc_std))
 
     # plot average learning curves and ROC curve
     if plot:
-        n_train_array = len(train_class)/float(len(n_learn)) * \
+        n_train_array = len(cv_indices['train'])/float(len(n_learn)) * \
                         np.array(range(1, len(n_learn)+1))
         ax0.plot(n_train_array, learn_train_avg/(n_learn+1.e-3), 'r-',
                  linewidth=3)
