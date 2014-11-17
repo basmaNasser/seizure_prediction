@@ -2,6 +2,7 @@
 #
 # Train a logistic regression model with cross-validation samples.
 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, roc_auc_score
@@ -20,11 +21,25 @@ def predict_probs(model, train_class, train_features, test_features,
     model.fit(train_features, train_class)
     train_prob, test_prob = [model.predict_proba(f)[:,1] for f in \
                                     (train_features, test_features)]
-    if normalize_probs == 'IsoReg':
+    if normalize_probs == 'LogShift':
+        # shift probabilities in log(p/(1-p)) so that a fraction f_pre
+        # of the samples has probability > 0.5, where f_pre is the
+        # fraction of preictal samples in the training data
+        f_pre = len(np.where(train_class)[0])/float(len(train_class))
+        train_th, test_th = [sorted(p)[int((1.-f_pre)*len(p))] \
+                                for p in (train_prob, test_prob)]
+        train_prob, test_prob = [(1.-pth)*p / (pth + p - 2.*pth*p) \
+                                for (pth, p) in zip((train_th, test_th),
+                                                    (train_prob, test_prob))]
+    elif normalize_probs == 'IsoReg':
+        # fit an isotonic regression model to training probabilities
+        # and use the model to transform all probabilities
         prob_model = IsotonicRegression(out_of_bounds='clip')
         prob_model.fit(train_prob, train_class)
         train_prob, test_prob = [prob_model.transform(p) for p in \
                                         (train_prob, test_prob)]
+    elif normalize_probs is not None:
+        sys.exit('Invalid value of normalize_probs:', str(normalize_probs))
     return (train_prob, test_prob)
 
 
@@ -132,11 +147,12 @@ def train_model(features_files, feature_columns, classifier, model_args,
                     learning_curve(model, (train_features, train_class),
                                    (cv_features, cv_class), n=len(n_learn),
                                    normalize_probs=normalize_probs)
-            n_learn[learn_mask] += 1
-            learn_train_avg[learn_mask] += learn_train
-            learn_cv_avg[learn_mask] += learn_cv
-            ax0.plot(n_train, learn_train, linestyle='-', color=(1,0.6,0.6))
-            ax0.plot(n_train, learn_cv, linestyle='-', color=(0.7,0.7,0.7))
+            if len(learn_mask) > 0:
+                n_learn[learn_mask] += 1
+                learn_train_avg[learn_mask] += learn_train
+                learn_cv_avg[learn_mask] += learn_cv
+                ax0.plot(n_train, learn_train, linestyle='-', color=(1,0.6,0.6))
+                ax0.plot(n_train, learn_cv, linestyle='-', color=(0.7,0.7,0.7))
 
         # predict probabilities
         train_prob, cv_prob = predict_probs(model, train_class, train_features,
