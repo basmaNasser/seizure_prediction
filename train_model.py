@@ -11,7 +11,7 @@ import features
 import submission
 
 def predict_probs(model, train_class, train_features, test_features,
-                  normalize_probs=False):
+                  normalize_probs=None):
     """
     Fit a given binary classification model to training sample features
     and return predicted probabilities for the positive class for
@@ -64,7 +64,7 @@ def learning_curve(model, train, test, n=10, metric=roc_auc_score, **kwargs):
 def train_model(features_files, feature_columns, classifier, model_args,
                 outlier_sigma=None, scale_features=True,
                 submission_file=None, save_settings=False, plot=False,
-                normalize_probs=False, n_cv=10, f_cv=0.3, verbose=False):
+                normalize_probs=None, n_cv=10, f_cv=0.3, verbose=False):
     """
     Fit a classification model (classifier, using arguments in model_args)
     to the features in columns feature_columns in the file(s) in
