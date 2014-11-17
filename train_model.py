@@ -144,7 +144,11 @@ def train_model(features_files, feature_columns, classifier, model_args,
         check_for_nan(train_prob)
         check_for_nan(cv_prob)
         if verbose:
-            print 'Feature coefficients:', model.coef_
+            try:
+                model_coef = model.coef_
+                print 'Feature coefficients:', model_coef
+            except:
+                pass
 
         # compute AUC
         auc = roc_auc_score(cv_class, cv_prob)
