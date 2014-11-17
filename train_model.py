@@ -26,6 +26,15 @@ def predict_probs(model, train_class, train_features, test_features,
         train_prob, test_prob = [prob_model.transform(p) for p in \
                                         (train_prob, test_prob)]
     return (train_prob, test_prob)
+
+
+def check_for_nan(x, replace_value=0., message=None):
+    if np.any(np.isnan(x)):
+        if message is not None:
+            print message
+        for i in range(len(x)):
+            if np.isnan(x[i]):
+                x[i] = replace_value
         
 
 def learning_curve(model, train, test, n=10, metric=roc_auc_score, **kwargs):
@@ -132,6 +141,8 @@ def train_model(features_files, feature_columns, classifier, model_args,
         # predict probabilities
         train_prob, cv_prob = predict_probs(model, train_class, train_features,
                                             cv_features, normalize_probs)
+        check_for_nan(train_prob)
+        check_for_nan(cv_prob)
         if verbose:
             print 'Feature coefficients:', model.coef_
 
@@ -166,16 +177,22 @@ def train_model(features_files, feature_columns, classifier, model_args,
         train_prob, test_prob = predict_probs(model, train_class,
                                               train_features, test_features,
                                               normalize_probs)
-        test_files = []
-        for ff in features_files:
+        check_for_nan(train_prob, message='Replacing NaN probabilities with 0.')
+        check_for_nan(test_prob, message='Replacing NaN probabilities with 0.')
+        for i, ff in enumerate(features_files):
             data_list_file = '.'.join(ff.split('.')[:-1]) + '_data_files.txt'
             with open(data_list_file, 'r') as df:
-                data_files = np.array(df.readlines())
-                if outlier_sigma is not None:
-                    data_files = data_files[retained_indices]
-            for f in data_files:
-                if 'test' in f:
-                    test_files.append(f.strip())
+                if i == 0:
+                    data_files = np.array(df.readlines())
+                else:
+                    data_files = np.concatenate((data_files, df.readlines()),
+                                                axis=0)
+        if outlier_sigma is not None:
+            data_files = data_files[retained_indices]
+        test_files = []
+        for f in data_files:
+            if 'test' in f:
+                test_files.append(f.strip())
         submission.update_submission(dict(zip(test_files, test_prob)),
                                      submission_file)
 
