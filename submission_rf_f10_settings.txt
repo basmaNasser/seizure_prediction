@@ -1,0 +1,10 @@
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+classifier: <class 'sklearn.ensemble.forest.RandomForestClassifier'>
+model_args: {'n_estimators': 10, 'criterion': 'entropy', 'min_samples_leaf': 2}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_rf_f10.csv
+normalize_probs: None
+AUC = 0.49+/-0.11
+

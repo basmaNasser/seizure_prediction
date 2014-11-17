@@ -1,0 +1,63 @@
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: [17, 21, 14, 8, 23]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: True
+
+features_files: ['data/Dog_2/features_01.txt']
+feature_columns: [13, 15, 7, 18]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.01, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: True
+
+features_files: ['data/Dog_3/features_01.txt']
+feature_columns: [3, 7, 12]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.01, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: True
+
+features_files: ['data/Dog_4/features_01.txt']
+feature_columns: [11, 18, 2, 8, 5]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.10000000000000001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: True
+
+features_files: ['data/Dog_5/features_01.txt']
+feature_columns: [11, 10, 7, 15]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 10.0, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: True
+
+features_files: ['data/Patient_1/features_01.txt']
+feature_columns: [10, 15, 14]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 1.0, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: True
+
+features_files: ['data/Patient_2/features_01.txt']
+feature_columns: [5, 23, 21]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: True
+

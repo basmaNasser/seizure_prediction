@@ -1,0 +1,10 @@
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: [15, 5]
+classifier: <class 'sklearn.neighbors.classification.KNeighborsClassifier'>
+model_args: {'n_neighbors': 10, 'weights': 'distance'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_knn_f3.csv
+normalize_probs: None
+AUC = 0.75+/-0.10
+

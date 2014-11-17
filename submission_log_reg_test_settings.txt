@@ -1,0 +1,30 @@
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: (20, 23)
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 1.0, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_test.csv
+normalize_probs: None
+AUC = 0.60+/-0.16
+
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: [23, 26, 21]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.01, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_test.csv
+normalize_probs: None
+AUC = 0.60+/-0.20
+
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: [21, 22, 23]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.01, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_test.csv
+normalize_probs: None
+AUC = 0.67+/-0.09
+

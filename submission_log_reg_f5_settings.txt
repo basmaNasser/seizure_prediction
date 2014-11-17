@@ -1,0 +1,70 @@
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: [17, 21, 12]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 10.0, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: IsoReg
+AUC = 0.69+/-0.17
+
+features_files: ['data/Dog_2/features_01.txt']
+feature_columns: [13, 12, 15]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.10000000000000001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: IsoReg
+AUC = 0.81+/-0.08
+
+features_files: ['data/Dog_3/features_01.txt']
+feature_columns: [3, 17, 21, 12, 19]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.01, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: IsoReg
+AUC = 0.73+/-0.07
+
+features_files: ['data/Dog_4/features_01.txt']
+feature_columns: [25, 5, 18, 15, 8]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 1.0, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: IsoReg
+AUC = 0.80+/-0.06
+
+features_files: ['data/Dog_5/features_01.txt']
+feature_columns: [25, 24, 15]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: IsoReg
+AUC = 0.83+/-0.09
+
+features_files: ['data/Patient_1/features_01.txt']
+feature_columns: [10, 16, 15, 14]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 10.0, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: IsoReg
+AUC = 0.91+/-0.03
+
+features_files: ['data/Patient_2/features_01.txt']
+feature_columns: [11, 23, 17]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 10.0, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5.csv
+normalize_probs: IsoReg
+AUC = 0.73+/-0.18
+

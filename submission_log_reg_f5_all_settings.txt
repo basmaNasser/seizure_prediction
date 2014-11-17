@@ -1,0 +1,20 @@
+features_files: ['data/Dog_1/features_02.txt', 'data/Dog_2/features_01.txt', 'data/Dog_3/features_01.txt', 'data/Dog_4/features_01.txt', 'data/Dog_5/features_01.txt', 'data/Patient_1/features_01.txt', 'data/Patient_2/features_01.txt']
+feature_columns: [10, 8, 7, 18]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5_all.csv
+normalize_probs: None
+AUC = 0.57+/-0.06
+
+features_files: ['data/Dog_1/features_02.txt', 'data/Dog_2/features_01.txt', 'data/Dog_3/features_01.txt', 'data/Dog_4/features_01.txt', 'data/Dog_5/features_01.txt', 'data/Patient_1/features_01.txt', 'data/Patient_2/features_01.txt']
+feature_columns: [10, 8, 7, 18]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f5_all.csv
+normalize_probs: None
+AUC = 0.56+/-0.06
+
