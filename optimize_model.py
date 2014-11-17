@@ -11,7 +11,7 @@ from train_model import train_model
 
 def optimize_model(features_files, submission_file,
                    classifier=linear_model.LogisticRegression,
-                   feature_columns=range(2, 26),
+                   feature_columns=range(2, 27),
                    min_features=1, max_features=1,
                    parameters={'C': np.logspace(-3, 1, 5),
                                'class_weight': ['auto']},
