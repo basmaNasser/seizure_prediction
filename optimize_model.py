@@ -11,7 +11,8 @@ from train_model import train_model
 
 def optimize_model(features_files, submission_file,
                    classifier=linear_model.LogisticRegression,
-                   feature_columns=range(2, 26), max_features=1,
+                   feature_columns=range(2, 26),
+                   min_features=1, max_features=1,
                    parameters={'C': np.logspace(-3, 1, 5),
                                'class_weight': ['auto']},
                    **kwargs):
@@ -29,16 +30,22 @@ def optimize_model(features_files, submission_file,
     best_model = {'AUC': 0.}
     
     # vary number of features
-    for n_features in range(1, max_features+1):
+    if min_features > max_features:
+        sys.exit('min_features must be <= max_features')
+    for n_features in range(min_features, max_features+1):
         # vary features used in model training
-        if n_features == 1:
-            feature_columns_grid = [[i] for i in feature_columns]
+        if n_features == min_features:
+            if min_features == 1:
+                feature_columns_grid = [[i] for i in feature_columns]
+            else:
+                feature_columns_grid = list(itertools.combinations( \
+                                           feature_columns, min_features))
         else:
             remaining_features = list(feature_columns)
             for i in best_model['columns']:
                 remaining_features.remove(i)
-            feature_columns_grid = [best_model['columns'] + [i] for i in \
-                                    remaining_features]
+            feature_columns_grid = [list(best_model['columns']) + [i] \
+                                    for i in remaining_features]
         for f_cols in feature_columns_grid:
             # vary model parameters
             for model_args in list(itertools.product( \
