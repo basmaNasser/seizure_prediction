@@ -1,0 +1,70 @@
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: [5, 11]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'probability': True, 'gamma': 1, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2_logshift.csv
+normalize_probs: LogShift
+AUC = 0.72+/-0.16
+
+features_files: ['data/Dog_2/features_01.txt']
+feature_columns: [13]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'probability': True, 'gamma': 0.5, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2_logshift.csv
+normalize_probs: LogShift
+AUC = 0.78+/-0.16
+
+features_files: ['data/Dog_3/features_01.txt']
+feature_columns: [3, 7]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 0.1, 'probability': True, 'gamma': 0.25, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2_logshift.csv
+normalize_probs: LogShift
+AUC = 0.78+/-0.07
+
+features_files: ['data/Dog_4/features_01.txt']
+feature_columns: [5, 11]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 0.1, 'probability': True, 'gamma': 0.25, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2_logshift.csv
+normalize_probs: LogShift
+AUC = 0.75+/-0.05
+
+features_files: ['data/Dog_5/features_01.txt']
+feature_columns: [14]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 0.1, 'probability': True, 'gamma': 1, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2_logshift.csv
+normalize_probs: LogShift
+AUC = 0.50+/-0.00
+
+features_files: ['data/Patient_1/features_01.txt']
+feature_columns: [4, 11]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'probability': True, 'gamma': 1, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2_logshift.csv
+normalize_probs: LogShift
+AUC = 0.70+/-0.12
+
+features_files: ['data/Patient_2/features_01.txt']
+feature_columns: [17, 18]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'probability': True, 'gamma': 1, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2_logshift.csv
+normalize_probs: LogShift
+AUC = 0.50+/-0.00
+

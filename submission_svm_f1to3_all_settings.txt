@@ -1,0 +1,10 @@
+features_files: ['data/Dog_1/features_02.txt', 'data/Dog_2/features_01.txt', 'data/Dog_3/features_01.txt', 'data/Dog_4/features_01.txt', 'data/Dog_5/features_01.txt', 'data/Patient_1/features_01.txt', 'data/Patient_2/features_01.txt']
+feature_columns: [2, 4, 15]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 1, 'gamma': 1, 'probability': True, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to3_all.csv
+normalize_probs: None
+AUC = 0.62+/-0.05
+

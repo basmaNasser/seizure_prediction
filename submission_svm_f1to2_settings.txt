@@ -1,0 +1,140 @@
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: [5, 11]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'gamma': 1, 'probability': True, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.72+/-0.12
+
+features_files: ['data/Dog_2/features_01.txt']
+feature_columns: [13]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'gamma': 0.5, 'probability': True, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.79+/-0.11
+
+features_files: ['data/Dog_3/features_01.txt']
+feature_columns: [3, 7]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 0.1, 'gamma': 0.25, 'probability': True, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.71+/-0.10
+
+features_files: ['data/Dog_4/features_01.txt']
+feature_columns: [11, 5]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 0.1, 'gamma': 0.25, 'probability': True, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.76+/-0.07
+
+features_files: ['data/Dog_5/features_01.txt']
+feature_columns: [14]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 0.1, 'gamma': 1, 'probability': True, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.81+/-0.12
+
+features_files: ['data/Patient_1/features_01.txt']
+feature_columns: [4, 11]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'gamma': 1, 'probability': True, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.68+/-0.13
+
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: [5, 11]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'probability': True, 'gamma': 1, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.81+/-0.07
+
+features_files: ['data/Dog_2/features_01.txt']
+feature_columns: [13]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'probability': True, 'gamma': 0.5, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.82+/-0.14
+
+features_files: ['data/Dog_3/features_01.txt']
+feature_columns: [3, 7]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 0.1, 'probability': True, 'gamma': 0.25, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.77+/-0.07
+
+features_files: ['data/Dog_4/features_01.txt']
+feature_columns: [5, 11]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 0.1, 'probability': True, 'gamma': 0.25, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.79+/-0.06
+
+features_files: ['data/Dog_5/features_01.txt']
+feature_columns: [14]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 0.1, 'probability': True, 'gamma': 1, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.75+/-0.13
+
+features_files: ['data/Patient_1/features_01.txt']
+feature_columns: [4, 11]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'probability': True, 'gamma': 1, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.73+/-0.09
+
+features_files: ['data/Patient_2/features_01.txt']
+feature_columns: [17, 18]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'probability': True, 'gamma': 1, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.63+/-0.17
+
+features_files: ['data/Patient_2/features_01.txt']
+feature_columns: [17, 18]
+classifier: <class 'sklearn.svm.classes.SVC'>
+model_args: {'kernel': 'rbf', 'C': 10, 'probability': True, 'gamma': 1, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_svm_f1to2.csv
+normalize_probs: IsoReg
+AUC = 0.66+/-0.25
+
