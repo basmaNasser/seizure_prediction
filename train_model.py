@@ -21,7 +21,40 @@ def predict_probs(model, train_class, train_features, test_features,
     model.fit(train_features, train_class)
     train_prob, test_prob = [model.predict_proba(f)[:,1] for f in \
                                     (train_features, test_features)]
-    if normalize_probs == 'LogShift':
+    if normalize_probs == 'ROCSlope':
+        # calibrate probabilities based on the estimated local slope
+        # of the ROC curve
+        chunk_size = 10    # number of instances for slope estimation
+        n_train_pos = 301    # total number of positive (preictal) instances
+        n_train_neg = 3766    # total negative (interictal)
+        n_chunk_tot = 4000./float(chunk_size)   # estimated total in test data
+        # sort training data classes by predicted probability
+        sort_order = train_prob.argsort()
+        p_sorted = train_prob[sort_order]
+        c_sorted = train_class[sort_order]
+        ix = np.array(range(len(train_prob)))
+        # loop over chunks
+        for i_ch in range(1 + (len(train_prob)-1)/chunk_size):
+            p_chunk, c_chunk = [x[np.where((ix >= i_ch*chunk_size) & \
+                                           (ix < (i_ch+1)*chunk_size))[0]] for \
+                                               x in (p_sorted, c_sorted)]
+            pmin = np.min(p_chunk)
+            pmax = np.max(p_chunk)
+            # compute TPR/FPR (relative to the entire training set)
+            tpr = np.sum(c_chunk) / float(n_train_pos)
+            fpr = np.sum(1 - c_chunk) / float(n_train_neg)
+            # compute probability transformation for this chunk
+            qc = (2./np.pi)*np.arctan(tpr/(fpr + 1.e-3/float(n_train_neg)))
+            qmin = np.max((0., qc - 0.5/float(n_chunk_tot)))
+            qmax = np.min((1., qc + 0.5/float(n_chunk_tot)))
+            # transform probabilities
+            tr_p_ch = np.where((train_prob > pmin) & (train_prob <= pmax))[0]
+            train_prob[tr_p_ch] = qmin + (train_prob[tr_p_ch] - pmin) * \
+                                      (qmax - qmin) / (pmax - pmin)
+            te_p_ch = np.where((test_prob > pmin) & (test_prob <= pmax))[0]
+            test_prob[te_p_ch] = qmin + (test_prob[te_p_ch] - pmin) * \
+                                      (qmax - qmin) / (pmax - pmin)
+    elif normalize_probs == 'LogShift':
         # shift probabilities in log(p/(1-p)) so that a fraction f_pre
         # of the samples has probability > 0.5, where f_pre is the
         # fraction of preictal samples in the training data
