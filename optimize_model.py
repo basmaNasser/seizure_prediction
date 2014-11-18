@@ -40,6 +40,9 @@ def optimize_model(features_files, submission_file,
             else:
                 feature_columns_grid = list(itertools.combinations( \
                                            feature_columns, min_features))
+        elif len(best_model['columns']) < n_features-1:
+            # exit loop since last iteration didn't add new features
+            break
         else:
             remaining_features = list(feature_columns)
             for i in best_model['columns']:
