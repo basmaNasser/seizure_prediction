@@ -1,0 +1,70 @@
+features_files: ['data/Dog_1/features_02.txt']
+feature_columns: [15, 26]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f1to4_reopt_rocslope10.csv
+normalize_probs: ROCSlope
+AUC = 0.71+/-0.09
+
+features_files: ['data/Dog_2/features_01.txt']
+feature_columns: [13, 12]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f1to4_reopt_rocslope10.csv
+normalize_probs: ROCSlope
+AUC = 0.78+/-0.09
+
+features_files: ['data/Dog_3/features_01.txt']
+feature_columns: [26]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 10.0, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f1to4_reopt_rocslope10.csv
+normalize_probs: ROCSlope
+AUC = 0.65+/-0.07
+
+features_files: ['data/Dog_4/features_01.txt']
+feature_columns: [11, 23]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 1.0, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f1to4_reopt_rocslope10.csv
+normalize_probs: ROCSlope
+AUC = 0.66+/-0.08
+
+features_files: ['data/Dog_5/features_01.txt']
+feature_columns: [25, 15, 23]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.01, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f1to4_reopt_rocslope10.csv
+normalize_probs: ROCSlope
+AUC = 0.76+/-0.14
+
+features_files: ['data/Patient_1/features_01.txt']
+feature_columns: [15, 9, 24, 12]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.01, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f1to4_reopt_rocslope10.csv
+normalize_probs: ROCSlope
+AUC = 0.91+/-0.06
+
+features_files: ['data/Patient_2/features_01.txt']
+feature_columns: [11, 15]
+classifier: <class 'sklearn.linear_model.logistic.LogisticRegression'>
+model_args: {'C': 0.10000000000000001, 'class_weight': 'auto'}
+outlier_sigma: 2
+scale_features: True
+submission_file: submission_log_reg_f1to4_reopt_rocslope10.csv
+normalize_probs: ROCSlope
+AUC = 0.74+/-0.16
+
