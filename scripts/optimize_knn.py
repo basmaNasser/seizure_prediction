@@ -3,6 +3,8 @@
 import sys
 import os.path
 from sklearn.neighbors import KNeighborsClassifier
+
+sys.path.insert(0, '.')
 from optimize_model import optimize_model
 
 submission_file = 'submission_knn_f3.csv'

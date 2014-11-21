@@ -3,6 +3,8 @@
 import sys
 import os.path
 from sklearn.svm import SVC
+
+sys.path.insert(0, '.')
 from optimize_model import optimize_model
 
 submission_file = 'submission_svm_f1to2.csv'

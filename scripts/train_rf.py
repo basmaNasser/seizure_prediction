@@ -3,6 +3,8 @@
 import sys
 import os.path
 from sklearn.ensemble import RandomForestClassifier
+
+sys.path.insert(0, '.')
 from train_model import train_model
 
 submission_file = 'submission_rf_f4imp_all.csv'

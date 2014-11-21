@@ -3,6 +3,8 @@
 import sys
 import os.path
 from sklearn.linear_model import LogisticRegression
+
+sys.path.insert(0, '.')
 from train_model import train_model
 
 submission_file = 'submission_log_reg_f1to3_rocslope10.csv'

@@ -3,6 +3,8 @@
 import sys
 import os.path
 from sklearn.svm import SVC
+
+sys.path.insert(0, '.')
 from train_model import train_model
 
 submission_file = 'submission_svm_f1to2_rocslope5.csv'

@@ -3,6 +3,8 @@
 import sys
 import os.path
 from sklearn.ensemble import RandomForestClassifier
+
+sys.path.insert(0, '.')
 from optimize_model import optimize_model
 
 submission_file = 'submission_rf_f4to7imp_all.csv'

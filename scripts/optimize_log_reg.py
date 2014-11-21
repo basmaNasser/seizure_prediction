@@ -2,6 +2,8 @@
 
 import sys
 import os.path
+
+sys.path.insert(0, '.')
 from optimize_model import optimize_model
 
 submission_file = 'submission_log_reg_f1to4_reopt_rocslope10.csv'
